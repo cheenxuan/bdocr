@@ -1,0 +1,3 @@
+rootProject.name='BaiduOCR'
+include ':app'
+include ':bdocr'
