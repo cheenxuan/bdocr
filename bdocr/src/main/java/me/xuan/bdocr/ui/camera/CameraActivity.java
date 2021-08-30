@@ -465,22 +465,10 @@ public class CameraActivity extends FragmentActivity implements ShowLoadingInter
                         result.getBankCardType().name(),
                         result.getBankName());
                 Log.i("BANKCARD", "onResult: " + res);
-//                ArrayList<String> listResult = new ArrayList();
-//                listResult.add(result.getBankCardNumber().replaceAll(" ", ""));
-//                listResult.add(result.getBankName());
-//                listResult.add("");
-//                listResult.add("");
-//                listResult.add(result.getBankCardType().name());
-//                listResult.add("");
-//                listResult.add(outputFile.getAbsolutePath());
-//                setRecResult(res, listResult);
-
-
+                
                 HashMap<String, String> map = new HashMap<>();
                 map.put(RESULT_BANK_CARD_NO, result.getBankCardNumber().replaceAll(" ", ""));
                 map.put(RESULT_BANK_NAME, result.getBankName());
-//                map.put("bankCode", "");
-//                map.put("cardName", "");
                 map.put(RESULT_BANK_CARD_TYPE, result.getBankCardType().name());
                 map.put(RESULT_BANK_CARD_VAILD_DATE, result.getValidDate());
                 map.put(RESULT_IMAGE_PATH, outputFile.getAbsolutePath());
@@ -518,23 +506,6 @@ public class CameraActivity extends FragmentActivity implements ShowLoadingInter
             public void onResult(IDCardResult result) {
                 if (result != null) {
                     Log.i("IDCARD", result.toString());
-//                    ArrayList<String> listResult = new ArrayList();
-//                    if ("front".equals(result.getIdCardSide())) {
-//                        listResult.add(result.getName().getWords());
-//                        listResult.add(result.getGender().getWords());
-//                        listResult.add(result.getEthnic().getWords());
-//                        listResult.add(result.getBirthday().getWords());
-//                        listResult.add(result.getAddress().getWords());
-//                        listResult.add(result.getIdNumber().getWords());
-//                        listResult.add(outputFile.getAbsolutePath());
-//                    } else {
-//                        listResult.add(result.getIssueAuthority().getWords());
-//                        listResult.add(result.getSignDate().getWords() + "-" + result.getExpiryDate().getWords());
-//                        listResult.add(outputFile.getAbsolutePath());
-//                    }
-//                    setRecResult(result.toString(), listResult);
-//                    {"姓名", "性别", "民族", "出生日期", "地址", "身份证号", "图片地址"}
-//                    {"签发机关", "有效日期", "图片地址"};
 
                     HashMap<String, String> map = new HashMap<>();
                     map.put(RESULT_ID_CARD_SIDE, result.getIdCardSide());

@@ -24,16 +24,16 @@ import me.xuan.bdocr.sdk.utils.HttpsClient.RequestInfo;
 public class HttpUtil {
     private Handler handler;
     private static volatile HttpUtil instance;
-    private static Options options = new Options();
+    private static HttpUtil.Options options = new HttpUtil.Options();
 
     private HttpUtil() {
     }
 
-    public static void setOptions(Options options) {
-        options = options;
+    public static void setOptions(HttpUtil.Options options) {
+        HttpUtil.options = options;
     }
 
-    public static Options getOptions() {
+    public static HttpUtil.Options getOptions() {
         return options;
     }
 
@@ -60,7 +60,6 @@ public class HttpUtil {
         body.setStrParams(params.getStringParams());
         body.setFileParams(params.getFileParams());
         RequestInfo reqInfo = new RequestInfo(path, body);
-        reqInfo.setHeader("Content-Type", "application/x-www-form-urlencoded;charset=utf-8");
         reqInfo.build();
         cl.newCall(reqInfo).enqueue(new Callback() {
             public void onFailure(final Throwable e) {
