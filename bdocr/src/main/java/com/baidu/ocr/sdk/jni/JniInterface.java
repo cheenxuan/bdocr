@@ -1,4 +1,4 @@
-package me.xuan.bdocr.sdk.jni;
+package com.baidu.ocr.sdk.jni;
 
 import android.content.Context;
 

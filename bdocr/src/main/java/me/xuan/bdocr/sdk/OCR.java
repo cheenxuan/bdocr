@@ -9,7 +9,7 @@ import java.io.File;
 
 import me.xuan.bdocr.sdk.exception.OCRError;
 import me.xuan.bdocr.sdk.exception.SDKError;
-import me.xuan.bdocr.sdk.jni.JniInterface;
+import com.baidu.ocr.sdk.jni.JniInterface;
 import me.xuan.bdocr.sdk.model.AccessToken;
 import me.xuan.bdocr.sdk.model.BankCardParams;
 import me.xuan.bdocr.sdk.model.BankCardResult;
