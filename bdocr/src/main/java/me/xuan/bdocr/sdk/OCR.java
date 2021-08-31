@@ -9,7 +9,9 @@ import java.io.File;
 
 import me.xuan.bdocr.sdk.exception.OCRError;
 import me.xuan.bdocr.sdk.exception.SDKError;
+
 import com.baidu.ocr.sdk.jni.JniInterface;
+
 import me.xuan.bdocr.sdk.model.AccessToken;
 import me.xuan.bdocr.sdk.model.BankCardParams;
 import me.xuan.bdocr.sdk.model.BankCardResult;
@@ -377,13 +379,20 @@ public class OCR {
     }
 
     public void release() {
-        HttpUtil.getInstance().release();
-        this.crInst.release();
-        this.crInst = null;
-        this.context = null;
-        if (instance != null) {
-            instance = null;
+        try {
+            HttpUtil.getInstance().release();
+            if (this.crInst != null) {
+                this.crInst.release();
+                this.crInst = null;
+            }
+            if (this.context != null) {
+                this.context = null;
+            }
+            if (instance != null) {
+                instance = null;
+            }
+        }catch (Exception e){
+            e.printStackTrace();
         }
-
     }
 }

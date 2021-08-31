@@ -140,7 +140,9 @@ public class HttpUtil {
     }
 
     public void release() {
-        this.handler = null;
+        if(this.handler != null){
+            this.handler = null;
+        }
     }
 
     public static class Options {
