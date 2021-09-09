@@ -173,6 +173,10 @@ public class CameraView extends FrameLayout {
     }
 
     public void takePicture(final File file, final OnTakePictureCallback callback) {
+        if(cameraControl.getTakePictureState() == 0){
+            return;
+        }
+        cameraControl.setTakePictureState(1);
         cameraViewTakePictureCallback.file = file;
         cameraViewTakePictureCallback.callback = callback;
         cameraControl.takePicture(cameraViewTakePictureCallback);
@@ -637,9 +641,16 @@ public class CameraView extends FrameLayout {
             CameraThreadPool.execute(new Runnable() {
                 @Override
                 public void run() {
-                    final int rotation = ImageUtil.getOrientation(data);
-                    Bitmap bitmap = crop(file, data, rotation);
-                    callback.onPictureTaken(bitmap);
+                    try {
+                        final int rotation = ImageUtil.getOrientation(data);
+                        Bitmap bitmap = crop(file, data, rotation);
+                        cameraControl.setTakePictureState(0);
+                        callback.onPictureTaken(bitmap);
+                    }catch (Exception e){
+                        e.printStackTrace();
+                        cameraControl.setTakePictureState(0);
+                    }
+                    
                 }
             });
         }

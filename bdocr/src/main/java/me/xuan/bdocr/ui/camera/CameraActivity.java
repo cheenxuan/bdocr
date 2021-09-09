@@ -321,6 +321,9 @@ public class CameraActivity extends FragmentActivity implements ShowLoadingInter
     private CameraView.OnTakePictureCallback autoTakePictureCallback = new CameraView.OnTakePictureCallback() {
         @Override
         public void onPictureTaken(final Bitmap bitmap) {
+            
+            if(bitmap == null) return;
+            
             CameraThreadPool.execute(new Runnable() {
                 @Override
                 public void run() {

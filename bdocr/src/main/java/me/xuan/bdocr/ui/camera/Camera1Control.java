@@ -59,6 +59,7 @@ public class Camera1Control implements ICameraControl {
     private final int MODEL_SCAN = 1;
 
     private int detectType = MODEL_NOSCAN;
+    private int isTakingPicture = 0;  //0 未拍照  1拍照中 2
 
     public int getCameraRotation() {
         return rotation;
@@ -145,6 +146,16 @@ public class Camera1Control implements ICameraControl {
     @Override
     public int getFlashMode() {
         return flashMode;
+    }
+    
+    @Override
+    public void setTakePictureState(int state) {
+        isTakingPicture = state;
+    }
+
+    @Override
+    public int getTakePictureState() {
+        return isTakingPicture;
     }
 
     @Override
@@ -240,6 +251,7 @@ public class Camera1Control implements ICameraControl {
             e.printStackTrace();
             startPreview(false);
             takingPicture.set(false);
+            setTakePictureState(0);
         }
     }
 
