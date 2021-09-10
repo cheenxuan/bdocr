@@ -27,6 +27,7 @@ import androidx.annotation.IntDef;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+
 import me.xuan.bdocr.R;
 import me.xuan.bdocr.ui.util.DimensionUtil;
 import me.xuan.bdocr.ui.util.ImageUtil;
@@ -89,9 +90,9 @@ public class CameraView extends FrameLayout {
     }
 
     /**
-     *  本地检测初始化，模型加载标识
+     * 本地检测初始化，模型加载标识
      */
-    private int initNativeStatus  = NATIVE_AUTH_INIT_SUCCESS;
+    private int initNativeStatus = NATIVE_AUTH_INIT_SUCCESS;
 
     @IntDef({ORIENTATION_PORTRAIT, ORIENTATION_HORIZONTAL, ORIENTATION_INVERT})
     public @interface Orientation {
@@ -147,6 +148,7 @@ public class CameraView extends FrameLayout {
     public void setOrientation(@Orientation int orientation) {
         cameraControl.setDisplayOrientation(orientation);
     }
+
     public CameraView(Context context) {
         super(context);
         init();
@@ -173,10 +175,6 @@ public class CameraView extends FrameLayout {
     }
 
     public void takePicture(final File file, final OnTakePictureCallback callback) {
-        if(cameraControl.getTakePictureState() != 0){
-            return;
-        }
-        cameraControl.setTakePictureState(1);
         cameraViewTakePictureCallback.file = file;
         cameraViewTakePictureCallback.callback = callback;
         cameraControl.takePicture(cameraViewTakePictureCallback);
@@ -273,7 +271,7 @@ public class CameraView extends FrameLayout {
 
         Rect frameRect = maskView.getFrameRectExtend();
 
-        int left =  width * frameRect.left / maskView.getWidth();
+        int left = width * frameRect.left / maskView.getWidth();
         int top = height * frameRect.top / maskView.getHeight();
         int right = width * frameRect.right / maskView.getWidth();
         int bottom = height * frameRect.bottom / maskView.getHeight();
@@ -445,7 +443,7 @@ public class CameraView extends FrameLayout {
 //            cameraControl = new Camera2Control(getContext());
 //        } 
 //        else {
-            cameraControl = new Camera1Control(getContext());
+        cameraControl = new Camera1Control(getContext());
 //        }
 
         displayView = cameraControl.getDisplayView();
@@ -502,9 +500,8 @@ public class CameraView extends FrameLayout {
      * 所以需要做旋转处理。
      *
      * @param outputFile 写入照片的文件。
-     * @param data  原始照片数据。
+     * @param data       原始照片数据。
      * @param rotation   照片exif中的旋转角度。
-     *
      * @return 裁剪好的bitmap。
      */
     @SuppressWarnings("ResultOfMethodCallIgnored")
@@ -519,7 +516,6 @@ public class CameraView extends FrameLayout {
 
             // BitmapRegionDecoder不会将整个图片加载到内存。
             BitmapRegionDecoder decoder = BitmapRegionDecoder.newInstance(data, 0, data.length, true);
-
 
 
             int width = rotation % 180 == 0 ? decoder.getWidth() : decoder.getHeight();
@@ -644,13 +640,11 @@ public class CameraView extends FrameLayout {
                     try {
                         final int rotation = ImageUtil.getOrientation(data);
                         Bitmap bitmap = crop(file, data, rotation);
-                        cameraControl.setTakePictureState(0);
                         callback.onPictureTaken(bitmap);
-                    }catch (Exception e){
+                    } catch (Exception e) {
                         e.printStackTrace();
-                        cameraControl.setTakePictureState(0);
                     }
-                    
+
                 }
             });
         }

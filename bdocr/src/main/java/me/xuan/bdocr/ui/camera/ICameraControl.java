@@ -118,8 +118,4 @@ public interface ICameraControl {
      */
     @FlashMode
     int getFlashMode();
-    
-    void setTakePictureState(int state);
-    
-    int getTakePictureState();
 }

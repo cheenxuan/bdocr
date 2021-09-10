@@ -192,16 +192,6 @@ public class Camera2Control implements ICameraControl {
         return flashMode;
     }
 
-    @Override
-    public void setTakePictureState(int state) {
-        
-    }
-
-    @Override
-    public int getTakePictureState() {
-        return 0;
-    }
-
     public Camera2Control(Context activity) {
         this.context = activity;
         textureView = new TextureView(activity);

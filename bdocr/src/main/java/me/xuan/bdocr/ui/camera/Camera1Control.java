@@ -11,10 +11,13 @@ import android.graphics.Rect;
 import android.graphics.SurfaceTexture;
 import android.graphics.YuvImage;
 import android.hardware.Camera;
+import android.util.Log;
 import android.view.TextureView;
 import android.view.View;
 import android.widget.FrameLayout;
+
 import androidx.core.app.ActivityCompat;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -22,6 +25,8 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
+
+import me.xuan.bdocr.R;
 
 /**
  * 5.0以下相机API的封装。
@@ -87,11 +92,11 @@ public class Camera1Control implements ICameraControl {
             os = new ByteArrayOutputStream(data.length);
             img.compressToJpeg(new Rect(0, 0, optSize.width, optSize.height), 80, os);
             byte[] jpeg = os.toByteArray();
-        int status = detectCallback.onDetect(jpeg, getCameraRotation());
+            int status = detectCallback.onDetect(jpeg, getCameraRotation());
 
-        if (status == 0) {
-            clearPreviewCallback();
-        }
+            if (status == 0) {
+                clearPreviewCallback();
+            }
         } catch (OutOfMemoryError e) {
             // 内存溢出则取消当次操作
         } finally {
@@ -146,16 +151,6 @@ public class Camera1Control implements ICameraControl {
     @Override
     public int getFlashMode() {
         return flashMode;
-    }
-    
-    @Override
-    public void setTakePictureState(int state) {
-        isTakingPicture = state;
-    }
-
-    @Override
-    public int getTakePictureState() {
-        return isTakingPicture;
     }
 
     @Override
@@ -212,8 +207,10 @@ public class Camera1Control implements ICameraControl {
     @Override
     public void takePicture(final OnTakePictureCallback onTakePictureCallback) {
         if (takingPicture.get()) {
+            System.out.println("------------------------------");
             return;
         }
+        System.out.println("+++++++++++++++++++++++++++++++++++++");
         switch (displayOrientation) {
             case CameraView.ORIENTATION_PORTRAIT:
                 parameters.setRotation(90);
@@ -234,16 +231,22 @@ public class Camera1Control implements ICameraControl {
             CameraThreadPool.execute(new Runnable() {
                 @Override
                 public void run() {
-                    camera.takePicture(null, null, new Camera.PictureCallback() {
-                        @Override
-                        public void onPictureTaken(byte[] data, Camera camera) {
-                            startPreview(false);
-                            takingPicture.set(false);
-                            if (onTakePictureCallback != null) {
-                                onTakePictureCallback.onPictureTaken(data);
+                    try {
+                        camera.takePicture(null, null, new Camera.PictureCallback() {
+                            @Override
+                            public void onPictureTaken(byte[] data, Camera camera) {
+                                startPreview(false);
+                                takingPicture.set(false);
+                                if (onTakePictureCallback != null) {
+                                    onTakePictureCallback.onPictureTaken(data);
+                                }
                             }
-                        }
-                    });
+                        });
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        startPreview(false);
+                        takingPicture.set(false);
+                    }
                 }
             });
 
@@ -251,7 +254,6 @@ public class Camera1Control implements ICameraControl {
             e.printStackTrace();
             startPreview(false);
             takingPicture.set(false);
-            setTakePictureState(0);
         }
     }
 
@@ -339,12 +341,12 @@ public class Camera1Control implements ICameraControl {
                         cameraId = i;
                     }
                 }
+                
                 try {
+                    releaseCameraAndPreview();
                     camera = Camera.open(cameraId);
-                } catch (Throwable e) {
+                } catch (Exception e) {
                     e.printStackTrace();
-                    startPreview(true);
-                    return;
                 }
 
             }
@@ -358,6 +360,13 @@ public class Camera1Control implements ICameraControl {
             startPreview(false);
         } catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+
+    private void releaseCameraAndPreview() {
+        if (camera != null) {
+            camera.release();
+            camera = null;
         }
     }
 
