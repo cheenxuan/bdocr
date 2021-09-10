@@ -173,7 +173,7 @@ public class CameraView extends FrameLayout {
     }
 
     public void takePicture(final File file, final OnTakePictureCallback callback) {
-        if(cameraControl.getTakePictureState() == 0){
+        if(cameraControl.getTakePictureState() != 0){
             return;
         }
         cameraControl.setTakePictureState(1);
