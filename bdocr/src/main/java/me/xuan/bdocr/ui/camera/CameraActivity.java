@@ -467,7 +467,7 @@ public class CameraActivity extends FragmentActivity implements ShowLoadingInter
                         result.getValidDate(),
                         result.getBankCardType().name(),
                         result.getBankName());
-                Log.i("BANKCARD", "onResult: " + res);
+//                Log.i("BANKCARD", "onResult: " + res);
                 
                 HashMap<String, String> map = new HashMap<>();
                 map.put(RESULT_BANK_CARD_NO, result.getBankCardNumber().replaceAll(" ", ""));
@@ -508,7 +508,7 @@ public class CameraActivity extends FragmentActivity implements ShowLoadingInter
             @Override
             public void onResult(IDCardResult result) {
                 if (result != null) {
-                    Log.i("IDCARD", result.toString());
+//                    Log.i("IDCARD", result.toString());
 
                     HashMap<String, String> map = new HashMap<>();
                     map.put(RESULT_ID_CARD_SIDE, result.getIdCardSide());
@@ -529,7 +529,7 @@ public class CameraActivity extends FragmentActivity implements ShowLoadingInter
             @Override
             public void onError(OCRError error) {
                 hideRecgLoading();
-                Log.i("IDCARD", error.getMessage());
+//                Log.i("IDCARD", error.getMessage());
                 Toast.makeText(CameraActivity.this, "身份证识别失败：" + error.getMessage(), Toast.LENGTH_LONG).show();
                 handler.postDelayed(new Runnable() {
                     @Override

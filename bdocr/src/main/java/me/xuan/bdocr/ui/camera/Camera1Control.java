@@ -207,10 +207,8 @@ public class Camera1Control implements ICameraControl {
     @Override
     public void takePicture(final OnTakePictureCallback onTakePictureCallback) {
         if (takingPicture.get()) {
-            System.out.println("------------------------------");
             return;
         }
-        System.out.println("+++++++++++++++++++++++++++++++++++++");
         switch (displayOrientation) {
             case CameraView.ORIENTATION_PORTRAIT:
                 parameters.setRotation(90);
