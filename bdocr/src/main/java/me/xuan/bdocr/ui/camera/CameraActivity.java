@@ -59,11 +59,12 @@ public class CameraActivity extends FragmentActivity implements ShowLoadingInter
     public static final String KEY_REC_RESULT_MAP = "mapResult";
 
     public static final String CONTENT_TYPE_GENERAL = "general";
+    public static final String CONTENT_TYPE_ALBUM = "album";
     public static final String CONTENT_TYPE_ID_CARD_FRONT = "IDCardFront";
     public static final String CONTENT_TYPE_ID_CARD_BACK = "IDCardBack";
     public static final String CONTENT_TYPE_BANK_CARD = "bankCard";
     public static final String CONTENT_TYPE_PASSPORT = "passport";
-    
+
     public static final String RESULT_ID_CARD_SIDE = "idCardSide";
     public static final String RESULT_ID_CARD_NAME = "name";
     public static final String RESULT_ID_CARD_GENDER = "gender";
@@ -74,8 +75,8 @@ public class CameraActivity extends FragmentActivity implements ShowLoadingInter
     public static final String RESULT_ID_CARD_AUTHORITY = "issueAuthority";
     public static final String RESULT_ID_CARD_VAILD_DATE = "vaildDate";
     public static final String RESULT_IMAGE_PATH = "iamgePath";
-    
-    
+
+
     public static final String RESULT_BANK_CARD_NO = "bankCardNo";
     public static final String RESULT_BANK_NAME = "bankName";
     public static final String RESULT_BANK_CARD_TYPE = "bankCardType";
@@ -145,9 +146,15 @@ public class CameraActivity extends FragmentActivity implements ShowLoadingInter
         cropContainer.findViewById(R.id.cancel_button).setOnClickListener(cropCancelButtonListener);
 
         setOrientation(getResources().getConfiguration());
+
+
         initParams();
 
-        cameraView.setAutoPictureCallback(autoTakePictureCallback);
+        if (getIntent().getStringExtra(KEY_CONTENT_TYPE).equals(CONTENT_TYPE_ALBUM)) {
+            openAlbum();
+        } else {
+            cameraView.setAutoPictureCallback(autoTakePictureCallback);
+        }
     }
 
     @Override
@@ -164,13 +171,17 @@ public class CameraActivity extends FragmentActivity implements ShowLoadingInter
     @Override
     protected void onPause() {
         super.onPause();
-        cameraView.stop();
+        if (!contentType.equals(CONTENT_TYPE_ALBUM)) {
+            cameraView.stop();
+        }
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        cameraView.start();
+        if (!contentType.equals(CONTENT_TYPE_ALBUM)) {
+            cameraView.start();
+        }
     }
 
     private void initParams() {
@@ -218,6 +229,7 @@ public class CameraActivity extends FragmentActivity implements ShowLoadingInter
                 maskType = MaskView.MASK_TYPE_PASSPORT;
                 overlayView.setVisibility(View.INVISIBLE);
                 break;
+            case CONTENT_TYPE_ALBUM:
             case CONTENT_TYPE_GENERAL:
             default:
                 maskType = MaskView.MASK_TYPE_NONE;
@@ -283,21 +295,24 @@ public class CameraActivity extends FragmentActivity implements ShowLoadingInter
     private View.OnClickListener albumButtonOnClickListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-
-            if (ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.READ_EXTERNAL_STORAGE)
-                    != PackageManager.PERMISSION_GRANTED) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-                    ActivityCompat.requestPermissions(CameraActivity.this,
-                            new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
-                            PERMISSIONS_EXTERNAL_STORAGE);
-                    return;
-                }
-            }
-            Intent intent = new Intent(Intent.ACTION_PICK);
-            intent.setType("image/*");
-            startActivityForResult(intent, REQUEST_CODE_PICK_IMAGE);
+            openAlbum();
         }
     };
+
+    private void openAlbum() {
+        if (ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.READ_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+                ActivityCompat.requestPermissions(CameraActivity.this,
+                        new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
+                        PERMISSIONS_EXTERNAL_STORAGE);
+                return;
+            }
+        }
+        Intent intent = new Intent(Intent.ACTION_PICK);
+        intent.setType("image/*");
+        startActivityForResult(intent, REQUEST_CODE_PICK_IMAGE);
+    }
 
     private View.OnClickListener lightButtonOnClickListener = new View.OnClickListener() {
         @Override
@@ -321,9 +336,9 @@ public class CameraActivity extends FragmentActivity implements ShowLoadingInter
     private CameraView.OnTakePictureCallback autoTakePictureCallback = new CameraView.OnTakePictureCallback() {
         @Override
         public void onPictureTaken(final Bitmap bitmap) {
-            
-            if(bitmap == null) return;
-            
+
+            if (bitmap == null) return;
+
             CameraThreadPool.execute(new Runnable() {
                 @Override
                 public void run() {
@@ -366,9 +381,14 @@ public class CameraActivity extends FragmentActivity implements ShowLoadingInter
     private View.OnClickListener cropCancelButtonListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-            // 释放cropView中的bitmap;
-            cropView.setFilePath(null);
-            showTakePicture();
+            if (!contentType.equals(CONTENT_TYPE_ALBUM)) {
+                // 释放cropView中的bitmap;
+                cropView.setFilePath(null);
+                showTakePicture();
+            } else {
+                setResult(Activity.RESULT_CANCELED);
+                finish();
+            }
         }
     };
 
@@ -427,7 +447,7 @@ public class CameraActivity extends FragmentActivity implements ShowLoadingInter
                     }
                 } else {
                     HashMap<String, String> map = new HashMap<>();
-                    map.put(RESULT_IMAGE_PATH,outputFile.getAbsolutePath());
+                    map.put(RESULT_IMAGE_PATH, outputFile.getAbsolutePath());
                     setRecResult("", map);
                 }
             }
@@ -446,6 +466,7 @@ public class CameraActivity extends FragmentActivity implements ShowLoadingInter
         public void onClick(View v) {
             displayImageView.setImageBitmap(null);
             showTakePicture();
+
         }
     };
 
@@ -468,7 +489,7 @@ public class CameraActivity extends FragmentActivity implements ShowLoadingInter
                         result.getBankCardType().name(),
                         result.getBankName());
 //                Log.i("BANKCARD", "onResult: " + res);
-                
+
                 HashMap<String, String> map = new HashMap<>();
                 map.put(RESULT_BANK_CARD_NO, result.getBankCardNumber().replaceAll(" ", ""));
                 map.put(RESULT_BANK_NAME, result.getBankName());
@@ -624,7 +645,12 @@ public class CameraActivity extends FragmentActivity implements ShowLoadingInter
                 cropView.setFilePath(getRealPathFromURI(uri));
                 showCrop();
             } else {
-                cameraView.getCameraControl().resume();
+                if (!contentType.equals(CONTENT_TYPE_ALBUM)) {
+                    cameraView.getCameraControl().resume();
+                }else{
+                    setResult(Activity.RESULT_CANCELED);
+                    finish();
+                }
             }
         }
     }
