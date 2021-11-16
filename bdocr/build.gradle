@@ -4,7 +4,7 @@ group='com.github.cheenxuan'
 android {
     compileSdkVersion 28
     buildToolsVersion "28.0.3"
-    ndkVersion "20.0.5594570"
+    ndkVersion "21.1.6352462"
 
     defaultConfig {
         minSdkVersion 19
