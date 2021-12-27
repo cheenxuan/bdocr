@@ -34,9 +34,9 @@ public class ExifUtil {
             while(true) {
                 while(true) {
                     int tag;
-                    if (offset + 3 < jpeg.length && (jpeg[offset++] & 0xFF) == 0xFF) {
-                        tag = jpeg[offset] & 0xFF;
-                        if (tag == 0xFF) {
+                    if (offset + 3 < jpeg.length && (jpeg[offset++] & 255) == 255) {
+                        tag = jpeg[offset] & 255;
+                        if (tag == 255) {
                             continue;
                         }
 

@@ -11,6 +11,7 @@ import android.graphics.Paint;
 import android.graphics.Rect;
 import android.util.AttributeSet;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import me.xuan.bdocr.R;
 
@@ -98,8 +99,8 @@ public class OCRCameraLayout extends FrameLayout {
         int left;
         int top;
 
-        MarginLayoutParams leftDownViewLayoutParams = (MarginLayoutParams) leftDownView.getLayoutParams();
-        MarginLayoutParams rightUpViewLayoutParams = (MarginLayoutParams) rightUpView.getLayoutParams();
+        ViewGroup.MarginLayoutParams leftDownViewLayoutParams = (MarginLayoutParams) leftDownView.getLayoutParams();
+        ViewGroup.MarginLayoutParams rightUpViewLayoutParams = (MarginLayoutParams) rightUpView.getLayoutParams();
         if (r < b) {
             int contentHeight = width * 4 / 3;
             int heightLeft = height - contentHeight;
@@ -118,7 +119,6 @@ public class OCRCameraLayout extends FrameLayout {
                         .layout(left, top, left + centerView.getMeasuredWidth(), top + centerView.getMeasuredHeight());
             }
             // layout leftDownView
-
             left = leftDownViewLayoutParams.leftMargin;
             top = contentHeight + (heightLeft - leftDownView.getMeasuredHeight()) / 2;
             leftDownView

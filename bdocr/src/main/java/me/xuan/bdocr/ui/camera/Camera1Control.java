@@ -9,7 +9,6 @@ import android.content.pm.PackageManager;
 import android.graphics.ImageFormat;
 import android.graphics.Rect;
 import android.graphics.SurfaceTexture;
-import android.graphics.YuvImage;
 import android.hardware.Camera;
 import android.util.Log;
 import android.view.TextureView;
@@ -18,7 +17,6 @@ import android.widget.FrameLayout;
 
 import androidx.core.app.ActivityCompat;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -26,13 +24,12 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import me.xuan.bdocr.R;
-
 /**
  * 5.0以下相机API的封装。
  */
 @SuppressWarnings("deprecation")
 public class Camera1Control implements ICameraControl {
+    private String TAG = this.getClass().getCanonicalName();
 
     private int displayOrientation = 0;
     private int cameraId = 0;
@@ -49,7 +46,6 @@ public class Camera1Control implements ICameraControl {
     private PreviewView previewView;
     private View displayView;
     private int rotation = 0;
-    private OnDetectPictureCallback detectCallback;
     private int previewFrameCount = 0;
     private Camera.Size optSize;
 
@@ -58,55 +54,10 @@ public class Camera1Control implements ICameraControl {
      */
     private final int MODEL_NOSCAN = 0;
 
-    /*
-     * 本地质量控制扫描模式
-     */
-    private final int MODEL_SCAN = 1;
-
     private int detectType = MODEL_NOSCAN;
-    private int isTakingPicture = 0;  //0 未拍照  1拍照中 2
-
-    public int getCameraRotation() {
-        return rotation;
-    }
 
     public AtomicBoolean getAbortingScan() {
         return abortingScan;
-    }
-
-    @Override
-    public void setDetectCallback(OnDetectPictureCallback callback) {
-        detectType = MODEL_SCAN;
-        detectCallback = callback;
-    }
-
-    private void onRequestDetect(byte[] data) {
-        // 相机已经关闭
-        if (camera == null || data == null || optSize == null) {
-            return;
-        }
-
-        YuvImage img = new YuvImage(data, ImageFormat.NV21, optSize.width, optSize.height, null);
-        ByteArrayOutputStream os = null;
-        try {
-            os = new ByteArrayOutputStream(data.length);
-            img.compressToJpeg(new Rect(0, 0, optSize.width, optSize.height), 80, os);
-            byte[] jpeg = os.toByteArray();
-            int status = detectCallback.onDetect(jpeg, getCameraRotation());
-
-            if (status == 0) {
-                clearPreviewCallback();
-            }
-        } catch (OutOfMemoryError e) {
-            // 内存溢出则取消当次操作
-        } finally {
-            try {
-                os.close();
-            } catch (Throwable e) {
-                e.printStackTrace();
-            }
-        }
-
     }
 
     @Override
@@ -133,7 +84,7 @@ public class Camera1Control implements ICameraControl {
      */
     @Override
     public void refreshPermission() {
-        startPreview(true);
+        startPreview();
     }
 
     /**
@@ -155,7 +106,7 @@ public class Camera1Control implements ICameraControl {
 
     @Override
     public void start() {
-        startPreview(false);
+        startPreview();
     }
 
     @Override
@@ -194,7 +145,7 @@ public class Camera1Control implements ICameraControl {
         } else {
             previewView.textureView.setSurfaceTextureListener(surfaceTextureListener);
             if (previewView.textureView.isAvailable()) {
-                startPreview(false);
+                startPreview();
             }
         }
     }
@@ -221,7 +172,7 @@ public class Camera1Control implements ICameraControl {
                 break;
         }
         try {
-            Camera.Size picSize = getOptimalSize(camera.getParameters().getSupportedPictureSizes());
+            Camera.Size picSize = getOptimalSize(parameters.getSupportedPictureSizes());
             parameters.setPictureSize(picSize.width, picSize.height);
             camera.setParameters(parameters);
             takingPicture.set(true);
@@ -229,28 +180,22 @@ public class Camera1Control implements ICameraControl {
             CameraThreadPool.execute(new Runnable() {
                 @Override
                 public void run() {
-                    try {
-                        camera.takePicture(null, null, new Camera.PictureCallback() {
-                            @Override
-                            public void onPictureTaken(byte[] data, Camera camera) {
-                                startPreview(false);
-                                takingPicture.set(false);
-                                if (onTakePictureCallback != null) {
-                                    onTakePictureCallback.onPictureTaken(data);
-                                }
+                    camera.takePicture(null, null, new Camera.PictureCallback() {
+                        @Override
+                        public void onPictureTaken(byte[] data, Camera camera) {
+                            startPreview();
+                            takingPicture.set(false);
+                            if (onTakePictureCallback != null) {
+                                onTakePictureCallback.onPictureTaken(data);
                             }
-                        });
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                        startPreview(false);
-                        takingPicture.set(false);
-                    }
+                        }
+                    });
                 }
             });
 
         } catch (RuntimeException e) {
             e.printStackTrace();
-            startPreview(false);
+            startPreview();
             takingPicture.set(false);
         }
     }
@@ -287,50 +232,11 @@ public class Camera1Control implements ICameraControl {
             buffer = new byte[displayView.getWidth()
                     * displayView.getHeight() * ImageFormat.getBitsPerPixel(ImageFormat.NV21) / 8];
         }
-        if (camera != null && detectType == MODEL_SCAN) {
-            camera.addCallbackBuffer(buffer);
-            camera.setPreviewCallback(previewCallback);
-        }
     }
-
-    private void clearPreviewCallback() {
-        if (camera != null && detectType == MODEL_SCAN) {
-            camera.setPreviewCallback(null);
-            stopPreview();
-        }
-    }
-
-    Camera.PreviewCallback previewCallback = new Camera.PreviewCallback() {
-        @Override
-        public void onPreviewFrame(final byte[] data, Camera camera) {
-            // 扫描成功阻止打开新线程处理
-            if (abortingScan.get()) {
-                return;
-            }
-            // 节流
-            if (previewFrameCount++ % 5 != 0) {
-                return;
-            }
-
-            // 在某些机型和某项项目中，某些帧的data的数据不符合nv21的格式，需要过滤，否则后续处理会导致crash
-            if (data.length != parameters.getPreviewSize().width * parameters.getPreviewSize().height * 1.5) {
-                return;
-            }
-
-            camera.addCallbackBuffer(buffer);
-
-            CameraThreadPool.execute(new Runnable() {
-                @Override
-                public void run() {
-                    Camera1Control.this.onRequestDetect(data);
-                }
-            });
-        }
-    };
-
 
     private void initCamera() {
         try {
+            Log.d(TAG, "initCamera() camera = " + camera);
             if (camera == null) {
                 Camera.CameraInfo cameraInfo = new Camera.CameraInfo();
                 for (int i = 0; i < Camera.getNumberOfCameras(); i++) {
@@ -339,15 +245,16 @@ public class Camera1Control implements ICameraControl {
                         cameraId = i;
                     }
                 }
-                
                 try {
-                    releaseCameraAndPreview();
                     camera = Camera.open(cameraId);
-                } catch (Exception e) {
+                } catch (Throwable e) {
+                    Log.d(TAG, "initCamera() open camera failed " + e.getMessage());
                     e.printStackTrace();
+                    startPreview();
+                    return;
                 }
-
             }
+
             if (parameters == null) {
                 parameters = camera.getParameters();
                 parameters.setPreviewFormat(ImageFormat.NV21);
@@ -355,16 +262,10 @@ public class Camera1Control implements ICameraControl {
             opPreviewSize(previewView.getWidth(), previewView.getHeight());
             camera.setPreviewTexture(surfaceCache);
             setPreviewCallbackImpl();
-            startPreview(false);
+            startPreview();
         } catch (IOException e) {
+            Log.d(TAG, "initCamera failed " + e.getMessage());
             e.printStackTrace();
-        }
-    }
-
-    private void releaseCameraAndPreview() {
-        if (camera != null) {
-            camera.release();
-            camera = null;
         }
     }
 
@@ -378,7 +279,7 @@ public class Camera1Control implements ICameraControl {
         @Override
         public void onSurfaceTextureSizeChanged(SurfaceTexture surface, int width, int height) {
             opPreviewSize(previewView.getWidth(), previewView.getHeight());
-            startPreview(false);
+            startPreview();
             setPreviewCallbackImpl();
         }
 
@@ -394,13 +295,13 @@ public class Camera1Control implements ICameraControl {
     };
 
     // 开启预览
-    private void startPreview(boolean checkPermission) {
+    private void startPreview() {
         if (ActivityCompat.checkSelfPermission(context, Manifest.permission.CAMERA)
                 != PackageManager.PERMISSION_GRANTED) {
-            if (checkPermission && permissionCallback != null) {
+            if (permissionCallback != null) {
                 permissionCallback.onRequestPermission();
+                return;
             }
-            return;
         }
         if (camera == null) {
             initCamera();
@@ -429,6 +330,8 @@ public class Camera1Control implements ICameraControl {
                             });
                         } catch (Throwable e) {
                             // startPreview是异步实现，可能在某些机器上前几次调用会autofocus failß
+//                            Log.d(TAG, "startAutoFocus  onAutoFocus failed");
+//                            e.printStackTrace();
                         }
                     }
                 }
@@ -439,29 +342,38 @@ public class Camera1Control implements ICameraControl {
     private void opPreviewSize(int width, @SuppressWarnings("unused") int height) {
 
         if (parameters != null && camera != null && width > 0) {
-            optSize = getOptimalSize(camera.getParameters().getSupportedPreviewSizes());
-            parameters.setPreviewSize(optSize.width, optSize.height);
-            previewView.setRatio(1.0f * optSize.width / optSize.height);
-
-            camera.setDisplayOrientation(getSurfaceOrientation());
-            stopPreview();
             try {
+                optSize = getOptimalSize(parameters.getSupportedPreviewSizes());
+                parameters.setPreviewSize(optSize.width, optSize.height);
+                previewView.setRatio(1.0f * optSize.width / optSize.height);
+                camera.stopPreview();
+                camera.setDisplayOrientation(getSurfaceOrientation());
                 camera.setParameters(parameters);
             } catch (RuntimeException e) {
+                Log.d(TAG, "opPreviewSize setParameters failed " + e.getMessage());
                 e.printStackTrace();
-
             }
         }
     }
 
     private Camera.Size getOptimalSize(List<Camera.Size> sizes) {
+        List<Camera.Size> tempSizes = sizes;
+
+        if (tempSizes == null || tempSizes.size() < 1) {
+            return parameters.getSupportedPreviewSizes().get(0);
+        }
+
         int width = previewView.textureView.getWidth();
         int height = previewView.textureView.getHeight();
-        Camera.Size pictureSize = sizes.get(0);
 
         List<Camera.Size> candidates = new ArrayList<>();
 
-        for (Camera.Size size : sizes) {
+        for (Camera.Size size : tempSizes) {
+
+            if(size.width > 4095 || size.height > 4095){
+                continue;
+            }
+
             if (size.width >= width && size.height >= height && size.width * height == size.height * width) {
                 // 比例相同
                 candidates.add(size);
@@ -474,13 +386,26 @@ public class Camera1Control implements ICameraControl {
             return Collections.min(candidates, sizeComparator);
         }
 
-        for (Camera.Size size : sizes) {
+        Collections.sort(tempSizes, new Comparator<Camera.Size>() {
+            @Override
+            public int compare(Camera.Size o1, Camera.Size o2) {
+                if(o1.width > o2.width && o1.height > o2.height){
+                    return 1;
+                }else if(o1.width == o2.width &&  o1.height == o2.height){
+                    return 0;
+                }else{
+                    return -1;
+                }
+            }
+        });
+
+        for (Camera.Size size : tempSizes) {
             if (size.width > width && size.height > height) {
                 return size;
             }
         }
 
-        return pictureSize;
+        return tempSizes.get(tempSizes.size() - 1);
     }
 
     private Comparator<Camera.Size> sizeComparator = new Comparator<Camera.Size>() {
@@ -498,7 +423,7 @@ public class Camera1Control implements ICameraControl {
             case FLASH_MODE_OFF:
                 parameters.setFlashMode(Camera.Parameters.FLASH_MODE_OFF);
                 break;
-            case FLASH_MODE_AUTO:
+            case ICameraControl.FLASH_MODE_AUTO:
                 parameters.setFlashMode(Camera.Parameters.FLASH_MODE_AUTO);
                 break;
             default:

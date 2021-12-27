@@ -65,7 +65,7 @@ public class HttpUtil {
             public void onFailure(final Throwable e) {
                 HttpUtil.this.handler.post(new Runnable() {
                     public void run() {
-                        HttpUtil.throwSDKError(listener, SDKError.ErrorCode.NETWORK_REQUEST_ERROR, "Network error", e);
+                        HttpUtil.throwSDKError(listener, 283504, "Network error", e);
                     }
                 });
             }
@@ -102,7 +102,7 @@ public class HttpUtil {
         reqInfo.build();
         cl.newCall(reqInfo).enqueue(new Callback() {
             public void onFailure(Throwable e) {
-                HttpUtil.throwSDKError(listener, SDKError.ErrorCode.NETWORK_REQUEST_ERROR, "Network error", e);
+                HttpUtil.throwSDKError(listener, 283504, "Network error", e);
             }
 
             public void onResponse(String resultStr) {
@@ -114,16 +114,16 @@ public class HttpUtil {
                             OCR.getInstance((Context)null).setLicense(accessToken.getLic());
                             listener.onResult(accessToken);
                         } else {
-                            HttpUtil.throwSDKError(listener, SDKError.ErrorCode.ACCESS_TOKEN_DATA_ERROR, "Server illegal response " + resultStr);
+                            HttpUtil.throwSDKError(listener, 283505, "Server illegal response " + resultStr);
                         }
                     } catch (SDKError var3) {
                         listener.onError(var3);
                     } catch (Exception var4) {
-                        HttpUtil.throwSDKError(listener, SDKError.ErrorCode.ACCESS_TOKEN_DATA_ERROR, "Server illegal response " + resultStr, var4);
+                        HttpUtil.throwSDKError(listener, 283505, "Server illegal response " + resultStr, var4);
                     }
 
                 } else {
-                    HttpUtil.throwSDKError(listener, SDKError.ErrorCode.ACCESS_TOKEN_DATA_ERROR, "Server illegal response " + resultStr);
+                    HttpUtil.throwSDKError(listener, 283505, "Server illegal response " + resultStr);
                 }
             }
         });
@@ -140,9 +140,7 @@ public class HttpUtil {
     }
 
     public void release() {
-        if(this.handler != null){
-            this.handler = null;
-        }
+        this.handler = null;
     }
 
     public static class Options {

@@ -7,7 +7,6 @@ package me.xuan.bdocr.sdk.exception;
  * Describe:
  */
 public class OCRError extends Exception {
-
     protected int errorCode;
     protected long logId;
     protected String errorMessage;

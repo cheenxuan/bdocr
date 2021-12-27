@@ -181,7 +181,6 @@ public class CrashReporterHandler implements UncaughtExceptionHandler {
                     return true;
                 }
             } catch (ClassNotFoundException var7) {
-                ;
             }
         }
 
@@ -219,7 +218,6 @@ public class CrashReporterHandler implements UncaughtExceptionHandler {
         try {
             this.resolveException(e);
         } catch (Throwable var4) {
-            ;
         }
 
         defaultHandler.uncaughtException(t, e);

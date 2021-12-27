@@ -62,7 +62,7 @@ public class IDCardResultParser implements Parser<IDCardResult> {
                 return result;
             }
         } catch (JSONException var5) {
-            error = new OCRError(SDKError.ErrorCode.ACCESS_TOKEN_DATA_ERROR, "Server illegal response " + json, var5);
+            error = new OCRError(OCRError.ErrorCode.SERVICE_DATA_ERROR, "Server illegal response " + json, var5);
             throw error;
         }
     }

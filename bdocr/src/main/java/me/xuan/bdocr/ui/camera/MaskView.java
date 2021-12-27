@@ -14,6 +14,7 @@ import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.View;
 
 import androidx.annotation.IntDef;
@@ -25,6 +26,8 @@ import me.xuan.bdocr.R;
 
 @SuppressWarnings("unused")
 public class MaskView extends View {
+
+    private final String TAG = this.getClass().getSimpleName();
 
     public static final int MASK_TYPE_NONE = 0;
     public static final int MASK_TYPE_ID_CARD_FRONT = 1;
@@ -138,7 +141,12 @@ public class MaskView extends View {
         super.onSizeChanged(w, h, oldw, oldh);
         if (w > 0 && h > 0) {
             if (maskType != MASK_TYPE_PASSPORT) {
+
+                Log.d(TAG, "onSizeChange() params: h ==" + h + "  w ==" + w);
+
                 float ratio = h > w ? 0.9f : 0.72f;
+
+                Log.d(TAG, "onSizeChange() ratio == " + ratio);
 
                 int width = (int) (w * ratio);
                 int height = width * 400 / 620;
@@ -187,6 +195,8 @@ public class MaskView extends View {
         int top = frame.top;
         int right = frame.right;
         int bottom = frame.bottom;
+
+        Log.d(TAG, "onDraw() left == " + left + " top == " + top + " right == " + right + " bottom == " + bottom);
 
         canvas.drawColor(maskColor);
         fillRectRound(left, top, right, bottom, 30, 30, false);

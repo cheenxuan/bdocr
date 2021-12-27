@@ -15,8 +15,7 @@ public class Util {
     public static String md5(String str) {
         try {
             MessageDigest md = MessageDigest.getInstance("MD5");
-            String md5Str = byteArrayToHex(md.digest(str.getBytes()));
-            return md5Str;
+            return byteArrayToHex(md.digest(str.getBytes()));
         } catch (Exception var3) {
             var3.printStackTrace();
             return "";

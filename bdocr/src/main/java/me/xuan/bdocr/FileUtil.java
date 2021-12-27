@@ -19,13 +19,13 @@ public class FileUtil {
     }
 
     public static File getSaveIdCardBackFile(Context context) {
-        String now = String.valueOf(System.currentTimeMillis());
+//        String now = String.valueOf(System.currentTimeMillis());
         File file = new File(context.getFilesDir(), "ID_CARD_back.jpg");
         return file;
     }
 
     public static File getSaveBankCardFile(Context context) {
-        String now = String.valueOf(System.currentTimeMillis());
+//        String now = String.valueOf(System.currentTimeMillis());
         File file = new File(context.getFilesDir(), "BANK_CARD.jpg");
         return file;
     }

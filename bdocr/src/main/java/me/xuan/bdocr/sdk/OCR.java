@@ -39,7 +39,7 @@ public class OCR {
     private static final String BANK_CARD_URL = "https://aip.baidubce.com/rest/2.0/ocr/v1/bankcard?";
     private static final String QUERY_TOKEN = "https://verify.baidubce.com/verify/1.0/token/sk?sdkVersion=1_4_4";
     private static final String QUERY_TOKEN_BIN = "https://verify.baidubce.com/verify/1.0/token/bin?sdkVersion=1_4_4";
-    private static final String PREFRENCE_FILE_KEY = "com.umpay.ocr.sdk";
+    private static final String PREFRENCE_FILE_KEY = "com.baidu.ocr.sdk";
     private static final String PREFRENCE_TOKENJSON_KEY = "token_json";
     private static final String PREFRENCE_EXPIRETIME_KEY = "token_expire_time";
     private static final String PREFRENCE_AUTH_TYPE = "token_auth_type";
@@ -57,9 +57,8 @@ public class OCR {
     private String license = null;
     @SuppressLint({"StaticFieldLeak"})
     private Context context;
-    //    private CrashReporterHandler crInst;
-    private static volatile OCR instance;
     private CrashReporterHandler crInst;
+    private static volatile OCR instance;
 
     public boolean isAutoCacheToken() {
         return this.isAutoCacheToken;
@@ -73,12 +72,13 @@ public class OCR {
         if (ctx != null) {
             this.context = ctx;
         }
+
     }
 
     public static OCR getInstance(Context ctx) {
         if (instance == null) {
             Class var1 = OCR.class;
-            synchronized (OCR.class) {
+            synchronized(OCR.class) {
                 if (instance == null) {
                     instance = new OCR(ctx);
                 }
@@ -93,10 +93,9 @@ public class OCR {
         this.crInst = CrashReporterHandler.init(context).addSourceClass(OCR.class);
 
         try {
-            Class uiClass = Class.forName("me.xuan.bdocr.ui.camera.CameraActivity");
+            Class uiClass = Class.forName("com.baidu.ocr.ui.camera.CameraActivity");
             this.crInst.addSourceClass(uiClass);
         } catch (Throwable var3) {
-
         }
 
         HttpUtil.getInstance().init();
@@ -123,7 +122,6 @@ public class OCR {
         return this.accessToken;
     }
 
-
     public void recognizeIDCard(final IDCardParams param, final OnResultListener<IDCardResult> listener) {
         File imageFile = param.getImageFile();
         final File tempImage = new File(this.context.getCacheDir(), String.valueOf(System.currentTimeMillis()));
@@ -136,13 +134,9 @@ public class OCR {
                     public void onResult(IDCardResult result) {
                         tempImage.delete();
                         if (listener != null) {
-                            if (result.isRecCorrect()) {
-                                listener.onResult(result);
-                            } else {
-                                OCRError error = new OCRError(OCRError.ErrorCode.SERVICE_DATA_ERROR, "recg id card error " + result.getImageStatus());
-                                listener.onError(error);
-                            }
+                            listener.onResult(result);
                         }
+
                     }
 
                     public void onError(OCRError error) {
@@ -164,7 +158,7 @@ public class OCR {
     public void recognizeBankCard(final BankCardParams params, final OnResultListener<BankCardResult> listener) {
         File imageFile = params.getImageFile();
         final File tempImage = new File(this.context.getCacheDir(), String.valueOf(System.currentTimeMillis()));
-        ImageUtil.resize(imageFile.getAbsolutePath(), tempImage.getAbsolutePath(), IMAGE_MAX_WIDTH, IMAGE_MAX_HEIGHT, params.getImageQuality());
+        ImageUtil.resize(imageFile.getAbsolutePath(), tempImage.getAbsolutePath(), IMAGE_MAX_WIDTH, IMAGE_MAX_HEIGHT,params.getImageQuality());
         params.setImageFile(tempImage);
         final Parser<BankCardResult> bankCardResultParser = new BankCardResultParser();
         this.getToken(new OnResultListener() {
@@ -173,13 +167,9 @@ public class OCR {
                     public void onResult(BankCardResult result) {
                         tempImage.delete();
                         if (listener != null) {
-                            if (result.isRecCorrect()) {
-                                listener.onResult(result);
-                            } else {
-                                OCRError error = new OCRError(OCRError.ErrorCode.SERVICE_DATA_ERROR, "recg bank card error " + result.getBankCardType());
-                                listener.onError(error);
-                            }
+                            listener.onResult(result);
                         }
+
                     }
 
                     public void onError(OCRError error) {
@@ -198,9 +188,7 @@ public class OCR {
         });
     }
 
-    /**
-     * @deprecated
-     */
+    /** @deprecated */
     @Deprecated
     public void initWithToken(Context context, AccessToken token) {
         this.init(context);
@@ -220,52 +208,20 @@ public class OCR {
         } else {
             Throwable loadLibError = JniInterface.getLoadLibraryError();
             if (loadLibError != null) {
-                SDKError e = new SDKError(283506, "Load jni so library error", loadLibError);
+                SDKError e = new SDKError(SDKError.ErrorCode.LOAD_JNI_LIBRARY_ERROR, "Load jni so library error", loadLibError);
                 listener.onError(e);
             } else {
                 JniInterface jniInterface = new JniInterface();
                 String hashSk = Util.md5(sk);
                 byte[] buf = jniInterface.init(context, DeviceUtil.getDeviceInfo(context));
                 String param = ak + ";" + hashSk + Base64.encodeToString(buf, 2);
-                HttpUtil.getInstance().getAccessToken(listener, "https://verify.baidubce.com/verify/1.0/token/sk?sdkVersion=1_4_4", param);
+                HttpUtil.getInstance().getAccessToken(listener, QUERY_TOKEN, param);
             }
-
-//            String authHost = "https://aip.baidubce.com/oauth/2.0/token?";
-//            String getAccessTokenUrl = authHost
-//                    // 1. grant_type为固定参数
-//                    + "grant_type=client_credentials"
-//                    // 2. 官网获取的 API Key
-//                    + "&client_id=" + ak
-//                    // 3. 官网获取的 Secret Key
-//                    + "&client_secret=" + sk;
-//
-//            HttpUtil.getInstance().getAccessToken(listener, getAccessTokenUrl, "");
-        }
-    }
-
-    public String getLicense() {
-        JniInterface jniInterface = new JniInterface();
-        if (this.authStatus == AUTHWITH_LICENSE) {
-            return jniInterface.getToken(this.context);
-        } else if (this.authStatus == AUTHWITH_AKSK && this.license != null) {
-            try {
-                byte[] bin = Base64.decode(this.license, 0);
-                String ret = jniInterface.getTokenFromLicense(this.context, bin, bin.length);
-                return ret;
-            } catch (Throwable var4) {
-                return null;
-            }
-        } else {
-            return null;
         }
     }
 
     public void initAccessToken(OnResultListener<AccessToken> listener, Context context) {
-        this.initAccessTokenImpl(listener, (String) null, context);
-    }
-
-    public void initAccessToken(OnResultListener<AccessToken> listener, String licenseFile, Context context) {
-        this.initAccessTokenImpl(listener, licenseFile, context);
+        this.initAccessTokenImpl(listener, (String)null, context);
     }
 
     private void initAccessTokenImpl(OnResultListener<AccessToken> listener, String licenseFile, Context context) {
@@ -292,7 +248,7 @@ public class OCR {
                     this.accessToken = tokenFromCache;
                     listener.onResult(tokenFromCache);
                 } else {
-                    HttpUtil.getInstance().getAccessToken(listener, "https://verify.baidubce.com/verify/1.0/token/bin?sdkVersion=1_4_4", param);
+                    HttpUtil.getInstance().getAccessToken(listener, QUERY_TOKEN_BIN, param);
                 }
             } catch (OCRError var9) {
                 listener.onError(var9);
@@ -315,9 +271,10 @@ public class OCR {
                 return null;
             } else {
                 AccessTokenParser parser = new AccessTokenParser();
+
                 try {
                     AccessToken token = parser.parse(json);
-                    long expireTime = mSharedPreferences.getLong("token_expire_time", 0L);
+                    long expireTime = mSharedPreferences.getLong(PREFRENCE_EXPIRETIME_KEY, 0L);
                     token.setExpireTime(expireTime);
                     this.authStatus = type;
                     return token;
@@ -334,10 +291,6 @@ public class OCR {
 
     private void getToken(final OnResultListener listener) {
         if (this.isTokenInvalid()) {
-            //清除本地accessToken
-            SharedPreferences mSharedPreferences = this.context.getSharedPreferences(PREFRENCE_FILE_KEY, 0);
-            SharedPreferences.Editor editor = mSharedPreferences.edit();
-            editor.remove(PREFRENCE_AUTH_TYPE).apply();
             if (this.authStatus == AUTHWITH_AKSK) {
                 this.initAccessTokenWithAkSk(new OnResultListener<AccessToken>() {
                     public void onResult(AccessToken result) {
@@ -373,26 +326,19 @@ public class OCR {
         StringBuilder sb = new StringBuilder(url);
         sb.append("access_token=").append(this.getAccessToken().getAccessToken());
         sb.append("&aipSdk=Android");
-        sb.append("&aipSdkVersion=").append(OCR_SDK_VERSION);
+        sb.append("&aipSdkVersion=").append("1_4_4");
         sb.append("&aipDevid=").append(DeviceUtil.getDeviceId(this.context));
         return sb.toString();
     }
 
     public void release() {
-        try {
-            HttpUtil.getInstance().release();
-            if (this.crInst != null) {
-                this.crInst.release();
-                this.crInst = null;
-            }
-            if (this.context != null) {
-                this.context = null;
-            }
-            if (instance != null) {
-                instance = null;
-            }
-        }catch (Exception e){
-            e.printStackTrace();
+        HttpUtil.getInstance().release();
+        this.crInst.release();
+        this.crInst = null;
+        this.context = null;
+        if (instance != null) {
+            instance = null;
         }
+
     }
 }

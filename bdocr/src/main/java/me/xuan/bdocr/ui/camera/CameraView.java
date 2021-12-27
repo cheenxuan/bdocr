@@ -59,41 +59,6 @@ public class CameraView extends FrameLayout {
      */
     public static final int ORIENTATION_INVERT = 270;
 
-    /**
-     * 本地模型授权，加载成功
-     */
-    public static final int NATIVE_AUTH_INIT_SUCCESS = 0;
-
-    /**
-     * 本地模型授权，缺少SO
-     */
-    public static final int NATIVE_SOLOAD_FAIL = 10;
-
-    /**
-     * 本地模型授权，授权失败，token异常
-     */
-    public static final int NATIVE_AUTH_FAIL = 11;
-
-    /**
-     * 本地模型授权，模型加载失败
-     */
-    public static final int NATIVE_INIT_FAIL = 12;
-
-
-    /**
-     * 是否已经通过本地质量控制扫描
-     */
-    private final int SCAN_SUCCESS = 0;
-
-    public void setInitNativeStatus(int initNativeStatus) {
-        this.initNativeStatus = initNativeStatus;
-    }
-
-    /**
-     * 本地检测初始化，模型加载标识
-     */
-    private int initNativeStatus = NATIVE_AUTH_INIT_SUCCESS;
-
     @IntDef({ORIENTATION_PORTRAIT, ORIENTATION_HORIZONTAL, ORIENTATION_INVERT})
     public @interface Orientation {
 
@@ -128,15 +93,6 @@ public class CameraView extends FrameLayout {
     private LinearLayout hintViewTextWrapper;
 
     /**
-     * 是否是本地质量控制扫描
-     */
-    private boolean isEnableScan;
-
-    public void setEnableScan(boolean enableScan) {
-        isEnableScan = enableScan;
-    }
-
-    /**
      * UI线程的handler
      */
     Handler uiHandler = new Handler(Looper.getMainLooper());
@@ -148,7 +104,6 @@ public class CameraView extends FrameLayout {
     public void setOrientation(@Orientation int orientation) {
         cameraControl.setDisplayOrientation(orientation);
     }
-
     public CameraView(Context context) {
         super(context);
         init();
@@ -178,12 +133,6 @@ public class CameraView extends FrameLayout {
         cameraViewTakePictureCallback.file = file;
         cameraViewTakePictureCallback.callback = callback;
         cameraControl.takePicture(cameraViewTakePictureCallback);
-    }
-
-    private OnTakePictureCallback autoPictureCallback;
-
-    public void setAutoPictureCallback(OnTakePictureCallback callback) {
-        autoPictureCallback = callback;
     }
 
     public void setMaskType(@MaskView.MaskType int maskType, final Context ctx) {
@@ -221,31 +170,9 @@ public class CameraView extends FrameLayout {
             hintView.setImageResource(hintResourceId);
             hintViewTextWrapper.setVisibility(INVISIBLE);
         }
-
-        if (maskType == MaskView.MASK_TYPE_ID_CARD_FRONT && isEnableScan) {
-            cameraControl.setDetectCallback(new ICameraControl.OnDetectPictureCallback() {
-                @Override
-                public int onDetect(byte[] data, int rotation) {
-                    return detect(data, rotation);
-                }
-            });
-        }
-
-        if (maskType == MaskView.MASK_TYPE_ID_CARD_BACK && isEnableScan) {
-            cameraControl.setDetectCallback(new ICameraControl.OnDetectPictureCallback() {
-                @Override
-                public int onDetect(byte[] data, int rotation) {
-                    return detect(data, rotation);
-                }
-            });
-        }
     }
 
     private int detect(byte[] data, final int rotation) {
-        if (initNativeStatus != NATIVE_AUTH_INIT_SUCCESS) {
-            showTipMessage(initNativeStatus);
-            return 1;
-        }
         // 扫描成功阻止多余的操作
         if (cameraControl.getAbortingScan().get()) {
             return 0;
@@ -271,7 +198,7 @@ public class CameraView extends FrameLayout {
 
         Rect frameRect = maskView.getFrameRectExtend();
 
-        int left = width * frameRect.left / maskView.getWidth();
+        int left =  width * frameRect.left / maskView.getWidth();
         int top = height * frameRect.top / maskView.getHeight();
         int right = width * frameRect.right / maskView.getWidth();
         int bottom = height * frameRect.bottom / maskView.getHeight();
@@ -352,33 +279,7 @@ public class CameraView extends FrameLayout {
             bitmap = rotatedBitmap;
         }
 
-        final int status;
-
-        // 调用本地质量控制请求
-        switch (maskType) {
-//            case MaskView.MASK_TYPE_ID_CARD_FRONT:
-//                status = IDcardQualityProcess.getInstance().idcardQualityDetectionImg(bitmap, true);
-//                break;
-//            case MaskView.MASK_TYPE_ID_CARD_BACK:
-//                status = IDcardQualityProcess.getInstance().idcardQualityDetectionImg(bitmap, false);
-//                break;
-            default:
-                status = 1;
-        }
-
-        // 当有某个扫描处理线程调用成功后，阻止其他线程继续调用本地控制代码
-        if (status == SCAN_SUCCESS) {
-            // 扫描成功阻止多线程同时回调
-            if (!cameraControl.getAbortingScan().compareAndSet(false, true)) {
-                bitmap.recycle();
-                return 0;
-            }
-            autoPictureCallback.onPictureTaken(bitmap);
-        }
-
-        showTipMessage(status);
-
-        return status;
+        return 1;
     }
 
     private void showTipMessage(final int status) {
@@ -420,15 +321,6 @@ public class CameraView extends FrameLayout {
             case 7:
                 message = "请将身份证完整置于取景框内";
                 break;
-            case NATIVE_AUTH_FAIL:
-                message = "本地质量控制授权失败";
-                break;
-            case NATIVE_INIT_FAIL:
-                message = "本地模型加载失败";
-                break;
-            case NATIVE_SOLOAD_FAIL:
-                message = "本地SO库加载失败";
-                break;
             case 1:
             default:
                 message = "请将身份证置于取景框内";
@@ -439,12 +331,7 @@ public class CameraView extends FrameLayout {
     }
 
     private void init() {
-//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-//            cameraControl = new Camera2Control(getContext());
-//        } 
-//        else {
         cameraControl = new Camera1Control(getContext());
-//        }
 
         displayView = cameraControl.getDisplayView();
         addView(displayView);
@@ -500,8 +387,9 @@ public class CameraView extends FrameLayout {
      * 所以需要做旋转处理。
      *
      * @param outputFile 写入照片的文件。
-     * @param data       原始照片数据。
+     * @param data  原始照片数据。
      * @param rotation   照片exif中的旋转角度。
+     *
      * @return 裁剪好的bitmap。
      */
     @SuppressWarnings("ResultOfMethodCallIgnored")
@@ -516,6 +404,7 @@ public class CameraView extends FrameLayout {
 
             // BitmapRegionDecoder不会将整个图片加载到内存。
             BitmapRegionDecoder decoder = BitmapRegionDecoder.newInstance(data, 0, data.length, true);
+
 
 
             int width = rotation % 180 == 0 ? decoder.getWidth() : decoder.getHeight();
@@ -623,10 +512,6 @@ public class CameraView extends FrameLayout {
         return null;
     }
 
-    public void release() {
-//        IDcardQualityProcess.getInstance().releaseModel();
-    }
-
     private class CameraViewTakePictureCallback implements ICameraControl.OnTakePictureCallback {
 
         private File file;
@@ -637,14 +522,9 @@ public class CameraView extends FrameLayout {
             CameraThreadPool.execute(new Runnable() {
                 @Override
                 public void run() {
-                    try {
-                        final int rotation = ImageUtil.getOrientation(data);
-                        Bitmap bitmap = crop(file, data, rotation);
-                        callback.onPictureTaken(bitmap);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-
+                    final int rotation = ImageUtil.getOrientation(data);
+                    Bitmap bitmap = crop(file, data, rotation);
+                    callback.onPictureTaken(bitmap);
                 }
             });
         }

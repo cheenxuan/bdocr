@@ -32,13 +32,12 @@ public class BankCardResultParser implements Parser<BankCardResult> {
                     result.setBankCardNumber(resultObject.optString("bank_card_number"));
                     result.setBankCardType(resultObject.optInt("bank_card_type"));
                     result.setBankName(resultObject.optString("bank_name"));
-                    result.setValidDate(resultObject.optString("valid_date"));
                 }
 
                 return result;
             }
         } catch (JSONException var5) {
-            throw new OCRError(SDKError.ErrorCode.ACCESS_TOKEN_DATA_ERROR, "Server illegal response " + json, var5);
+            throw new OCRError(OCRError.ErrorCode.SERVICE_DATA_ERROR, "Server illegal response " + json, var5);
         }
     }
 }

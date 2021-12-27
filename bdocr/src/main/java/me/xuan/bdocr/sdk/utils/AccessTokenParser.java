@@ -5,6 +5,8 @@ import org.json.JSONObject;
 import me.xuan.bdocr.sdk.exception.SDKError;
 import me.xuan.bdocr.sdk.model.AccessToken;
 
+import static me.xuan.bdocr.sdk.exception.SDKError.ErrorCode.ACCESS_TOKEN_DATA_ERROR;
+
 /**
  * Author: xuan
  * Created on 2019/10/23 14:47.
@@ -39,16 +41,14 @@ public class AccessTokenParser implements Parser<AccessToken> {
                 } else {
                     String message = jsonObject.optString("message");
                     Long logId = jsonObject.optLong("log_id");
-                    error = new SDKError(status, message + " logId: " + logId);
-                    throw error;
+                    throw new SDKError(status, message + " logId: " + logId);
                 }
             } else {
-                error = new SDKError(SDKError.ErrorCode.ACCESS_TOKEN_DATA_ERROR, "Server illegal response " + json);
+                error = new SDKError(ACCESS_TOKEN_DATA_ERROR, "Server illegal response " + json);
                 throw error;
             }
-        } catch (JSONException var7) {
-            error = new SDKError(SDKError.ErrorCode.ACCESS_TOKEN_DATA_ERROR, "Server illegal response " + json, var7);
-            throw error;
+        } catch (JSONException e) {
+            throw new SDKError(ACCESS_TOKEN_DATA_ERROR, "Server illegal response " + json, e);
         }
     }
 }

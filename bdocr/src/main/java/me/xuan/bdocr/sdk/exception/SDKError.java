@@ -7,7 +7,6 @@ package me.xuan.bdocr.sdk.exception;
  * Describe:
  */
 public class SDKError extends OCRError {
-
     public SDKError(int errorCode, String message, Throwable cause) {
         super(errorCode, message, cause);
         this.cause = cause;

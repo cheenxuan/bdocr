@@ -17,7 +17,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.provider.MediaStore;
-import android.util.Log;
 import android.view.Surface;
 import android.view.View;
 import android.widget.ImageView;
@@ -32,7 +31,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Map;
 
 import me.xuan.bdocr.R;
 import me.xuan.bdocr.ShowLoadingInterface;
@@ -50,8 +48,6 @@ public class CameraActivity extends FragmentActivity implements ShowLoadingInter
 
     public static final String KEY_OUTPUT_FILE_PATH = "outputFilePath";
     public static final String KEY_CONTENT_TYPE = "contentType";
-    public static final String KEY_NATIVE_TOKEN = "nativeToken";
-    public static final String KEY_NATIVE_ENABLE = "nativeEnable";
     public static final String KEY_NATIVE_MANUAL = "nativeEnableManual";
     public static final String KEY_AUTO_RECOGNITION = "autorecogniton";
     public static final String KEY_REC_RESULT = "recresult";
@@ -89,9 +85,7 @@ public class CameraActivity extends FragmentActivity implements ShowLoadingInter
     private File outputFile;
     private String contentType;
     private Handler handler = new Handler();
-
-    private boolean isNativeEnable;
-    private boolean isNativeManual;
+    
     private boolean isAutoRecg;
 
     private OCRCameraLayout takePictureContainer;
@@ -152,8 +146,6 @@ public class CameraActivity extends FragmentActivity implements ShowLoadingInter
 
         if (getIntent().getStringExtra(KEY_CONTENT_TYPE).equals(CONTENT_TYPE_ALBUM)) {
             openAlbum();
-        } else {
-            cameraView.setAutoPictureCallback(autoTakePictureCallback);
         }
     }
 
@@ -186,13 +178,6 @@ public class CameraActivity extends FragmentActivity implements ShowLoadingInter
 
     private void initParams() {
         String outputPath = getIntent().getStringExtra(KEY_OUTPUT_FILE_PATH);
-        final String token = getIntent().getStringExtra(KEY_NATIVE_TOKEN);
-        isNativeEnable = getIntent().getBooleanExtra(KEY_NATIVE_ENABLE, true);
-        isNativeManual = getIntent().getBooleanExtra(KEY_NATIVE_MANUAL, false);
-
-        if (token == null && !isNativeManual) {
-            isNativeEnable = false;
-        }
 
         if (outputPath != null) {
             outputFile = new File(outputPath);
@@ -210,16 +195,10 @@ public class CameraActivity extends FragmentActivity implements ShowLoadingInter
             case CONTENT_TYPE_ID_CARD_FRONT:
                 maskType = MaskView.MASK_TYPE_ID_CARD_FRONT;
                 overlayView.setVisibility(View.INVISIBLE);
-                if (isNativeEnable) {
-                    takePhotoBtn.setVisibility(View.INVISIBLE);
-                }
                 break;
             case CONTENT_TYPE_ID_CARD_BACK:
                 maskType = MaskView.MASK_TYPE_ID_CARD_BACK;
                 overlayView.setVisibility(View.INVISIBLE);
-                if (isNativeEnable) {
-                    takePhotoBtn.setVisibility(View.INVISIBLE);
-                }
                 break;
             case CONTENT_TYPE_BANK_CARD:
                 maskType = MaskView.MASK_TYPE_BANK_CARD;
@@ -236,27 +215,11 @@ public class CameraActivity extends FragmentActivity implements ShowLoadingInter
                 cropMaskView.setVisibility(View.INVISIBLE);
                 break;
         }
-
-        //身份证本地能力初始化
-//        if (maskType == MaskView.MASK_TYPE_ID_CARD_FRONT || maskType == MaskView.MASK_TYPE_ID_CARD_BACK) {
-//            if (isNativeEnable && !isNativeManual) {
-//                initNative(token);
-//            }
-//        }
-//        cameraView.setEnableScan(isNativeEnable);
+        
         cameraView.setMaskType(maskType, this);
         cropMaskView.setMaskType(maskType);
     }
-
-    private void initNative(final String token) {
-//        CameraNativeHelper.init(CameraActivity.this, token,
-//                new CameraNativeHelper.CameraNativeInitCallback() {
-//            @Override
-//            public void onError(int errorCode, Throwable e) {
-//                cameraView.setInitNativeStatus(errorCode);
-//            }
-//        });
-    }
+    
 
     private void showTakePicture() {
         cameraView.getCameraControl().resume();
@@ -330,32 +293,6 @@ public class CameraActivity extends FragmentActivity implements ShowLoadingInter
         @Override
         public void onClick(View v) {
             cameraView.takePicture(outputFile, takePictureCallback);
-        }
-    };
-
-    private CameraView.OnTakePictureCallback autoTakePictureCallback = new CameraView.OnTakePictureCallback() {
-        @Override
-        public void onPictureTaken(final Bitmap bitmap) {
-
-            if (bitmap == null) return;
-
-            CameraThreadPool.execute(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        FileOutputStream fileOutputStream = new FileOutputStream(outputFile);
-                        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fileOutputStream);
-                        bitmap.recycle();
-                        fileOutputStream.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                    Intent intent = new Intent();
-                    intent.putExtra(CameraActivity.KEY_CONTENT_TYPE, contentType);
-                    setResult(Activity.RESULT_OK, intent);
-                    finish();
-                }
-            });
         }
     };
 
@@ -483,9 +420,8 @@ public class CameraActivity extends FragmentActivity implements ShowLoadingInter
         OCR.getInstance(this).recognizeBankCard(param, new OnResultListener<BankCardResult>() {
             @Override
             public void onResult(BankCardResult result) {
-                String res = String.format("卡号：%s\n有效期：%s\n类型：%s\n发卡行：%s",
+                String res = String.format("卡号：%s\n类型：%s\n发卡行：%s",
                         result.getBankCardNumber(),
-                        result.getValidDate(),
                         result.getBankCardType().name(),
                         result.getBankName());
 //                Log.i("BANKCARD", "onResult: " + res);
@@ -494,7 +430,7 @@ public class CameraActivity extends FragmentActivity implements ShowLoadingInter
                 map.put(RESULT_BANK_CARD_NO, result.getBankCardNumber().replaceAll(" ", ""));
                 map.put(RESULT_BANK_NAME, result.getBankName());
                 map.put(RESULT_BANK_CARD_TYPE, result.getBankCardType().name());
-                map.put(RESULT_BANK_CARD_VAILD_DATE, result.getValidDate());
+                map.put(RESULT_BANK_CARD_VAILD_DATE, "");
                 map.put(RESULT_IMAGE_PATH, outputFile.getAbsolutePath());
 
                 setRecResult(res, map);
@@ -680,9 +616,6 @@ public class CameraActivity extends FragmentActivity implements ShowLoadingInter
      */
     private void doClear() {
         CameraThreadPool.cancelAutoFocusTimer();
-//        if (isNativeEnable && !isNativeManual) {
-//            IDcardQualityProcess.getInstance().releaseModel();
-//        }
     }
 
 

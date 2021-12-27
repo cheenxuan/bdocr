@@ -9,18 +9,9 @@ package me.xuan.bdocr.sdk.model;
 public class BankCardResult extends ResponseResult {
     private String bankCardNumber;
     private String bankName;
-    private String validDate;
-    private BankCardType bankCardType;
+    private BankCardResult.BankCardType bankCardType;
 
     public BankCardResult() {
-    }
-
-    public String getValidDate() {
-        return validDate;
-    }
-
-    public void setValidDate(String validDate) {
-        this.validDate = validDate;
     }
 
     public String getBankName() {
@@ -31,16 +22,16 @@ public class BankCardResult extends ResponseResult {
         this.bankName = bankName;
     }
 
-    public BankCardType getBankCardType() {
+    public BankCardResult.BankCardType getBankCardType() {
         return this.bankCardType;
     }
 
-    public void setBankCardType(BankCardType bankCardType) {
+    public void setBankCardType(BankCardResult.BankCardType bankCardType) {
         this.bankCardType = bankCardType;
     }
 
     public void setBankCardType(int bankCardTypeId) {
-        this.bankCardType = BankCardType.FromId(bankCardTypeId);
+        this.bankCardType = BankCardResult.BankCardType.FromId(bankCardTypeId);
     }
 
     public String getBankCardNumber() {
@@ -49,10 +40,6 @@ public class BankCardResult extends ResponseResult {
 
     public void setBankCardNumber(String bankCardNumber) {
         this.bankCardNumber = bankCardNumber;
-    }
-
-    public boolean isRecCorrect() {
-        return this.bankCardType != BankCardType.Unknown;
     }
 
     public static enum BankCardType {
@@ -66,8 +53,8 @@ public class BankCardResult extends ResponseResult {
             this.id = id;
         }
 
-        public static BankCardType FromId(int id) {
-            switch (id) {
+        public static BankCardResult.BankCardType FromId(int id) {
+            switch(id) {
                 case 1:
                     return Debit;
                 case 2:

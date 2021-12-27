@@ -3,10 +3,12 @@ package me.xuan.bdocr.sdk.utils;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
+import android.graphics.Bitmap.CompressFormat;
+import android.graphics.BitmapFactory.Options;
 import android.media.ExifInterface;
-
 import java.io.FileOutputStream;
 import java.io.IOException;
+import android.media.ExifInterface;
 
 /**
  * Author: xuan
@@ -24,11 +26,9 @@ public class ImageUtil {
 
     public static void resize(String inputPath, String outputPath, int dstWidth, int dstHeight, int quality) {
         try {
-            BitmapFactory.Options options = new BitmapFactory.Options();
+            Options options = new Options();
             options.inJustDecodeBounds = true;
             BitmapFactory.decodeFile(inputPath, options);
-            int inWidth = options.outWidth;
-            int inHeight = options.outHeight;
             Matrix m = new Matrix();
             ExifInterface exif = new ExifInterface(inputPath);
             int rotation = exif.getAttributeInt("Orientation", 1);
@@ -39,7 +39,7 @@ public class ImageUtil {
             int maxPreviewImageSize = Math.max(dstWidth, dstHeight);
             int size = Math.min(options.outWidth, options.outHeight);
             size = Math.min(size, maxPreviewImageSize);
-            options = new BitmapFactory.Options();
+            options = new Options();
             options.inSampleSize = calculateInSampleSize(options, size, size);
             options.inScaled = true;
             options.inDensity = options.outWidth;
@@ -48,7 +48,7 @@ public class ImageUtil {
             FileOutputStream out = new FileOutputStream(outputPath);
 
             try {
-                roughBitmap.compress(Bitmap.CompressFormat.JPEG, quality, out);
+                roughBitmap.compress(CompressFormat.JPEG, quality, out);
             } catch (Exception var25) {
                 var25.printStackTrace();
             } finally {
@@ -65,7 +65,7 @@ public class ImageUtil {
 
     }
 
-    public static int calculateInSampleSize(BitmapFactory.Options options, int reqWidth, int reqHeight) {
+    public static int calculateInSampleSize(Options options, int reqWidth, int reqHeight) {
         int height = options.outHeight;
         int width = options.outWidth;
         int inSampleSize = 1;
@@ -73,7 +73,6 @@ public class ImageUtil {
             int halfHeight = height / 2;
 
             for(int halfWidth = width / 2; halfHeight / inSampleSize >= reqHeight && halfWidth / inSampleSize >= reqWidth; inSampleSize *= 2) {
-                ;
             }
         }
 

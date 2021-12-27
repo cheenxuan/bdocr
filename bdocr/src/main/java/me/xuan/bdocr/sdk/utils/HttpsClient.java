@@ -12,6 +12,7 @@ import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.net.ssl.HttpsURLConnection;
 
@@ -25,21 +26,21 @@ public class HttpsClient {
     public HttpsClient() {
     }
 
-    public Call newCall(RequestInfo requestInfo) {
-        Call call = new Call(requestInfo);
+    public HttpsClient.Call newCall(HttpsClient.RequestInfo requestInfo) {
+        HttpsClient.Call call = new HttpsClient.Call(requestInfo);
         return call;
     }
 
     public static class Call implements Runnable {
-        private RequestInfo requestInfo;
+        private HttpsClient.RequestInfo requestInfo;
         private Thread thread;
-        private Callback callback;
+        private HttpsClient.Callback callback;
 
-        public Call(RequestInfo requestInfo) {
+        public Call(HttpsClient.RequestInfo requestInfo) {
             this.requestInfo = requestInfo;
         }
 
-        public Call enqueue(Callback callback) {
+        public HttpsClient.Call enqueue(HttpsClient.Callback callback) {
             this.callback = callback;
             this.thread = new Thread(this);
             this.thread.start();
@@ -49,15 +50,15 @@ public class HttpsClient {
         private void setHeaders(HttpsURLConnection con, Map<String, String> headers) {
             Iterator var3 = headers.entrySet().iterator();
 
-            while(var3.hasNext()) {
-                Map.Entry<String, String> entry = (Map.Entry)var3.next();
-                con.setRequestProperty((String)entry.getKey(), (String)entry.getValue());
+            while (var3.hasNext()) {
+                Map.Entry<String, String> entry = (Map.Entry) var3.next();
+                con.setRequestProperty((String) entry.getKey(), (String) entry.getValue());
             }
 
         }
 
         public void run() {
-            RequestInfo requestInfo = this.requestInfo;
+            HttpsClient.RequestInfo requestInfo = this.requestInfo;
             HttpsURLConnection con = null;
             Exception buildException;
             if ((buildException = requestInfo.getBuildException()) != null) {
@@ -66,7 +67,7 @@ public class HttpsClient {
                 try {
                     URL url = requestInfo.getURL();
                     byte[] body = requestInfo.getBody();
-                    con = (HttpsURLConnection)url.openConnection();
+                    con = (HttpsURLConnection) url.openConnection();
                     this.setHeaders(con, requestInfo.getHeaders());
                     con.setRequestMethod("POST");
                     con.setConnectTimeout(requestInfo.getConTimeout());
@@ -96,7 +97,7 @@ public class HttpsClient {
                 boolean var5 = false;
 
                 int readedNumber;
-                while((readedNumber = br.read(cs)) != -1) {
+                while ((readedNumber = br.read(cs)) != -1) {
                     sb.append(new String(cs, 0, readedNumber));
                 }
 
@@ -113,7 +114,7 @@ public class HttpsClient {
         private String urlStr;
         private URL url;
         private Map<String, String> headers;
-        private RequestBody body;
+        private HttpsClient.RequestBody body;
         private Exception ex;
         private int conTimeout;
         private int readTimeout;
@@ -130,7 +131,7 @@ public class HttpsClient {
             return this.readTimeout;
         }
 
-        public RequestInfo(String urlStr, RequestBody body) {
+        public RequestInfo(String urlStr, HttpsClient.RequestBody body) {
             this.urlStr = urlStr;
             this.body = body;
             this.headers = new HashMap();
@@ -180,16 +181,16 @@ public class HttpsClient {
 
         public void setStrParams(Map<String, String> params) {
             if (params != null) {
-                Iterator var2 = params.entrySet().iterator();
+                Iterator<Entry<String, String>> it = params.entrySet().iterator();
 
-                while(var2.hasNext()) {
-                    Map.Entry<String, String> entry = (Map.Entry)var2.next();
+                while (it.hasNext()) {
+                    Entry entry = (Entry) it.next();
                     if (this.paramNumber > 0) {
                         this.stringBuffer.append("&");
                     }
 
-                    String key = (String)entry.getKey();
-                    String value = (String)entry.getValue();
+                    String key = (String) entry.getKey();
+                    String value = (String) entry.getValue();
 
                     try {
                         key = URLEncoder.encode(key, UTF8);
@@ -207,16 +208,16 @@ public class HttpsClient {
         public void setFileParams(Map<String, File> params) {
             StringBuffer sb = new StringBuffer();
             if (params != null) {
-                Iterator var3 = params.entrySet().iterator();
+                Iterator iterator = params.entrySet().iterator();
 
-                while(var3.hasNext()) {
-                    Map.Entry<String, File> entry = (Map.Entry)var3.next();
+                while (iterator.hasNext()) {
+                    Entry<String, File> entry = (Entry) iterator.next();
                     if (this.paramNumber > 0) {
                         this.stringBuffer.append("&");
                     }
 
-                    String key = (String)entry.getKey();
-                    File file = (File)entry.getValue();
+                    String key = entry.getKey();
+                    File file = entry.getValue();
 
                     try {
                         key = URLEncoder.encode(key, UTF8);
@@ -224,16 +225,16 @@ public class HttpsClient {
                         this.stringBuffer.append(key + "=");
 
                         byte[] encoded;
-                        while((encoded = encoder.encode()) != null) {
+                        while ((encoded = encoder.encode()) != null) {
                             sb.append(new String(encoded));
                             this.stringBuffer.append(URLEncoder.encode(new String(encoded), UTF8));
                         }
 
                         ++this.paramNumber;
-                    } catch (UnsupportedEncodingException var9) {
-                        var9.printStackTrace();
-                    } catch (FileNotFoundException var10) {
-                        var10.printStackTrace();
+                    } catch (UnsupportedEncodingException e) {
+                        e.printStackTrace();
+                    } catch (FileNotFoundException e) {
+                        e.printStackTrace();
                     }
                 }
 

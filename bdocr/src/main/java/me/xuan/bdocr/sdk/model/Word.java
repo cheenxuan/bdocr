@@ -12,7 +12,7 @@ import java.util.List;
 public class Word extends WordSimple {
     private Location location = new Location();
     private List<VertexesLocation> vertexesLocation;
-    private List<Char> characterResults;
+    private List<Word.Char> characterResults;
 
     public Word() {
     }
@@ -33,11 +33,11 @@ public class Word extends WordSimple {
         this.vertexesLocation = vertexesLocation;
     }
 
-    public List<Char> getCharacterResults() {
+    public List<Word.Char> getCharacterResults() {
         return this.characterResults;
     }
 
-    public void setCharacterResults(List<Char> characterResults) {
+    public void setCharacterResults(List<Word.Char> characterResults) {
         this.characterResults = characterResults;
     }
 

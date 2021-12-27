@@ -29,6 +29,6 @@ public class BaseImageParams implements RequestParams {
     }
 
     public File getImageFile() {
-        return (File)this.fileMap.get("image");
+        return (File) this.fileMap.get("image");
     }
 }

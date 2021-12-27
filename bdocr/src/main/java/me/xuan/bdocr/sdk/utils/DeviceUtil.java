@@ -9,6 +9,8 @@ import android.text.TextUtils;
 
 import java.util.UUID;
 
+import static javax.xml.transform.OutputKeys.VERSION;
+
 /**
  * Author: xuan
  * Created on 2019/10/23 14:34.
@@ -20,17 +22,7 @@ public class DeviceUtil {
     }
 
     public static String getVersionName(Context context) {
-        String versionName = "";
-
-        try {
-            PackageManager packageManager = context.getPackageManager();
-            PackageInfo packInfo = packageManager.getPackageInfo(context.getPackageName(), 0);
-            versionName = packInfo.versionName;
-        } catch (Exception var4) {
-            var4.printStackTrace();
-        }
-
-        return versionName;
+        return "1.0";
     }
 
     public static String getDeviceId(Context context) {
