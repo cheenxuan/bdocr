@@ -142,6 +142,8 @@ public class ImageUtil {
         final int width = options.outWidth;
         int inSampleSize = 1;
 
+//        System.out.println("crop height == " + height + " width == " + width + "reWidth == " + reqWidth);
+
         if (height > reqHeight || width > reqWidth) {
 
             final int halfHeight = height / 2;
@@ -153,6 +155,8 @@ public class ImageUtil {
                 inSampleSize *= 2;
             }
         }
+
+//        System.out.println("inSampleSize == " + inSampleSize);
 
         return inSampleSize;
     }

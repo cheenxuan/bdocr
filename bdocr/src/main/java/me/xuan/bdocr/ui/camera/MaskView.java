@@ -142,11 +142,11 @@ public class MaskView extends View {
         if (w > 0 && h > 0) {
             if (maskType != MASK_TYPE_PASSPORT) {
 
-                Log.d(TAG, "onSizeChange() params: h ==" + h + "  w ==" + w);
+//                Log.d(TAG, "onSizeChange() params: h ==" + h + "  w ==" + w);
 
                 float ratio = h > w ? 0.9f : 0.72f;
 
-                Log.d(TAG, "onSizeChange() ratio == " + ratio);
+//                Log.d(TAG, "onSizeChange() ratio == " + ratio);
 
                 int width = (int) (w * ratio);
                 int height = width * 400 / 620;
@@ -196,7 +196,7 @@ public class MaskView extends View {
         int right = frame.right;
         int bottom = frame.bottom;
 
-        Log.d(TAG, "onDraw() left == " + left + " top == " + top + " right == " + right + " bottom == " + bottom);
+//        Log.d(TAG, "onDraw() left == " + left + " top == " + top + " right == " + right + " bottom == " + bottom);
 
         canvas.drawColor(maskColor);
         fillRectRound(left, top, right, bottom, 30, 30, false);

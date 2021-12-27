@@ -404,8 +404,7 @@ public class CameraView extends FrameLayout {
 
             // BitmapRegionDecoder不会将整个图片加载到内存。
             BitmapRegionDecoder decoder = BitmapRegionDecoder.newInstance(data, 0, data.length, true);
-
-
+            
 
             int width = rotation % 180 == 0 ? decoder.getWidth() : decoder.getHeight();
             int height = rotation % 180 == 0 ? decoder.getHeight() : decoder.getWidth();
@@ -470,15 +469,17 @@ public class CameraView extends FrameLayout {
             BitmapFactory.Options options = new BitmapFactory.Options();
 
             // 最大图片大小。
+//            System.out.println("decoder.getWidth() = " + decoder.getWidth() +"  decoder.getHeight() = " + decoder.getHeight());
             int maxPreviewImageSize = 2560;
             int size = Math.min(decoder.getWidth(), decoder.getHeight());
             size = Math.min(size, maxPreviewImageSize);
-
+//            System.out.println("size == " + size);
             options.inSampleSize = ImageUtil.calculateInSampleSize(options, size, size);
             options.inScaled = true;
             options.inDensity = Math.max(options.outWidth, options.outHeight);
             options.inTargetDensity = size;
             options.inPreferredConfig = Bitmap.Config.RGB_565;
+            
             Bitmap bitmap = decoder.decodeRegion(region, options);
 
             if (rotation != 0) {

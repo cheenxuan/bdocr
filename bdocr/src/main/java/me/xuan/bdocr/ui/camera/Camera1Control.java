@@ -29,7 +29,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 @SuppressWarnings("deprecation")
 public class Camera1Control implements ICameraControl {
-    private String TAG = this.getClass().getCanonicalName();
+//    private String TAG = this.getClass().getCanonicalName();
 
     private int displayOrientation = 0;
     private int cameraId = 0;
@@ -236,7 +236,7 @@ public class Camera1Control implements ICameraControl {
 
     private void initCamera() {
         try {
-            Log.d(TAG, "initCamera() camera = " + camera);
+//            Log.d(TAG, "initCamera() camera = " + camera);
             if (camera == null) {
                 Camera.CameraInfo cameraInfo = new Camera.CameraInfo();
                 for (int i = 0; i < Camera.getNumberOfCameras(); i++) {
@@ -248,7 +248,7 @@ public class Camera1Control implements ICameraControl {
                 try {
                     camera = Camera.open(cameraId);
                 } catch (Throwable e) {
-                    Log.d(TAG, "initCamera() open camera failed " + e.getMessage());
+//                    Log.d(TAG, "initCamera() open camera failed " + e.getMessage());
                     e.printStackTrace();
                     startPreview();
                     return;
@@ -264,7 +264,7 @@ public class Camera1Control implements ICameraControl {
             setPreviewCallbackImpl();
             startPreview();
         } catch (IOException e) {
-            Log.d(TAG, "initCamera failed " + e.getMessage());
+//            Log.d(TAG, "initCamera failed " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -350,7 +350,7 @@ public class Camera1Control implements ICameraControl {
                 camera.setDisplayOrientation(getSurfaceOrientation());
                 camera.setParameters(parameters);
             } catch (RuntimeException e) {
-                Log.d(TAG, "opPreviewSize setParameters failed " + e.getMessage());
+//                Log.d(TAG, "opPreviewSize setParameters failed " + e.getMessage());
                 e.printStackTrace();
             }
         }
@@ -370,10 +370,9 @@ public class Camera1Control implements ICameraControl {
 
         for (Camera.Size size : tempSizes) {
 
-            if(size.width > 4095 || size.height > 4095){
+            if (size.width > 4095 || size.height > 4095) {
                 continue;
             }
-
             if (size.width >= width && size.height >= height && size.width * height == size.height * width) {
                 // 比例相同
                 candidates.add(size);
@@ -389,11 +388,11 @@ public class Camera1Control implements ICameraControl {
         Collections.sort(tempSizes, new Comparator<Camera.Size>() {
             @Override
             public int compare(Camera.Size o1, Camera.Size o2) {
-                if(o1.width > o2.width && o1.height > o2.height){
+                if (o1.width > o2.width && o1.height > o2.height) {
                     return 1;
-                }else if(o1.width == o2.width &&  o1.height == o2.height){
+                } else if (o1.width == o2.width && o1.height == o2.height) {
                     return 0;
-                }else{
+                } else {
                     return -1;
                 }
             }
@@ -404,8 +403,9 @@ public class Camera1Control implements ICameraControl {
                 return size;
             }
         }
-
+        
         return tempSizes.get(tempSizes.size() - 1);
+//        return tempSizes.get(0);
     }
 
     private Comparator<Camera.Size> sizeComparator = new Comparator<Camera.Size>() {

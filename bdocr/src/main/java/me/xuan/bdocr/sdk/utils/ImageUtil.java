@@ -39,14 +39,15 @@ public class ImageUtil {
             int maxPreviewImageSize = Math.max(dstWidth, dstHeight);
             int size = Math.min(options.outWidth, options.outHeight);
             size = Math.min(size, maxPreviewImageSize);
-            options = new Options();
             options.inSampleSize = calculateInSampleSize(options, size, size);
             options.inScaled = true;
             options.inDensity = options.outWidth;
             options.inTargetDensity = size * options.inSampleSize;
+            
+            options.inJustDecodeBounds = false;
             Bitmap roughBitmap = BitmapFactory.decodeFile(inputPath, options);
+            
             FileOutputStream out = new FileOutputStream(outputPath);
-
             try {
                 roughBitmap.compress(CompressFormat.JPEG, quality, out);
             } catch (Exception var25) {
@@ -66,15 +67,25 @@ public class ImageUtil {
     }
 
     public static int calculateInSampleSize(Options options, int reqWidth, int reqHeight) {
-        int height = options.outHeight;
-        int width = options.outWidth;
+        final int height = options.outHeight;
+        final int width = options.outWidth;
         int inSampleSize = 1;
-        if (height > reqHeight || width > reqWidth) {
-            int halfHeight = height / 2;
 
-            for(int halfWidth = width / 2; halfHeight / inSampleSize >= reqHeight && halfWidth / inSampleSize >= reqWidth; inSampleSize *= 2) {
+//        System.out.println("height == " + height + " width == " + width + "  rewidth == " + reqWidth);
+
+        if (height > reqHeight || width > reqWidth) {
+
+            final int halfHeight = height / 2;
+            final int halfWidth = width / 2;
+            // Calculate the largest inSampleSize value that is a power of 2 and keeps both
+            // height and width larger than the requested height and width.
+            while ((halfHeight / inSampleSize) >= reqHeight
+                    && (halfWidth / inSampleSize) >= reqWidth) {
+                inSampleSize *= 2;
             }
         }
+
+//        System.out.println("inSampleSize == " + inSampleSize);
 
         return inSampleSize;
     }

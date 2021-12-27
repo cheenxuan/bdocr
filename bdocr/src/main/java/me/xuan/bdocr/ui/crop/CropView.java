@@ -62,7 +62,6 @@ public class CropView extends View {
 
             // 图片太大会导致内存泄露，所以在显示前对图片进行裁剪。
             int maxPreviewImageSize = 2560;
-
             int min = Math.min(options.outWidth, options.outHeight);
             min = Math.min(min, maxPreviewImageSize);
 
