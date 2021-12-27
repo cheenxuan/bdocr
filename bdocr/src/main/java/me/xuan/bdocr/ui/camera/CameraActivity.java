@@ -48,7 +48,6 @@ public class CameraActivity extends FragmentActivity implements ShowLoadingInter
 
     public static final String KEY_OUTPUT_FILE_PATH = "outputFilePath";
     public static final String KEY_CONTENT_TYPE = "contentType";
-    public static final String KEY_NATIVE_MANUAL = "nativeEnableManual";
     public static final String KEY_AUTO_RECOGNITION = "autorecogniton";
     public static final String KEY_REC_RESULT = "recresult";
     public static final String KEY_REC_RESULT_ES = "listResult";
@@ -499,16 +498,6 @@ public class CameraActivity extends FragmentActivity implements ShowLoadingInter
         });
     }
 
-    private void setRecResult(String result, ArrayList<String> resultArr) {
-        hideRecgLoading();
-        Intent intent = new Intent();
-        intent.putExtra(CameraActivity.KEY_CONTENT_TYPE, contentType);
-        intent.putExtra(CameraActivity.KEY_REC_RESULT, result);
-        intent.putStringArrayListExtra(CameraActivity.KEY_REC_RESULT_ES, resultArr);
-        setResult(Activity.RESULT_OK, intent);
-        CameraActivity.this.finish();
-    }
-
     private void setRecResult(String result, HashMap<String, String> resultArr) {
         hideRecgLoading();
         Intent intent = new Intent();
@@ -600,8 +589,7 @@ public class CameraActivity extends FragmentActivity implements ShowLoadingInter
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     cameraView.getCameraControl().refreshPermission();
                 } else {
-                    Toast.makeText(getApplicationContext(), R.string.camera_permission_required, Toast.LENGTH_LONG)
-                            .show();
+                    Toast.makeText(getApplicationContext(), R.string.camera_permission_required, Toast.LENGTH_LONG).show();
                 }
                 break;
             }

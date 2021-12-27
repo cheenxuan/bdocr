@@ -169,7 +169,6 @@ public class OCR {
                         if (listener != null) {
                             listener.onResult(result);
                         }
-
                     }
 
                     public void onError(OCRError error) {
