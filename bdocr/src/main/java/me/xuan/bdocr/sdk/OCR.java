@@ -78,7 +78,7 @@ public class OCR {
     public static OCR getInstance(Context ctx) {
         if (instance == null) {
             Class var1 = OCR.class;
-            synchronized(OCR.class) {
+            synchronized (OCR.class) {
                 if (instance == null) {
                     instance = new OCR(ctx);
                 }
@@ -158,7 +158,7 @@ public class OCR {
     public void recognizeBankCard(final BankCardParams params, final OnResultListener<BankCardResult> listener) {
         File imageFile = params.getImageFile();
         final File tempImage = new File(this.context.getCacheDir(), String.valueOf(System.currentTimeMillis()));
-        ImageUtil.resize(imageFile.getAbsolutePath(), tempImage.getAbsolutePath(), IMAGE_MAX_WIDTH, IMAGE_MAX_HEIGHT,params.getImageQuality());
+        ImageUtil.resize(imageFile.getAbsolutePath(), tempImage.getAbsolutePath(), IMAGE_MAX_WIDTH, IMAGE_MAX_HEIGHT, params.getImageQuality());
         params.setImageFile(tempImage);
         final Parser<BankCardResult> bankCardResultParser = new BankCardResultParser();
         this.getToken(new OnResultListener() {
@@ -187,7 +187,9 @@ public class OCR {
         });
     }
 
-    /** @deprecated */
+    /**
+     * @deprecated
+     */
     @Deprecated
     public void initWithToken(Context context, AccessToken token) {
         this.init(context);
@@ -220,7 +222,7 @@ public class OCR {
     }
 
     public void initAccessToken(OnResultListener<AccessToken> listener, Context context) {
-        this.initAccessTokenImpl(listener, (String)null, context);
+        this.initAccessTokenImpl(listener, (String) null, context);
     }
 
     private void initAccessTokenImpl(OnResultListener<AccessToken> listener, String licenseFile, Context context) {
@@ -331,13 +333,20 @@ public class OCR {
     }
 
     public void release() {
-        HttpUtil.getInstance().release();
-        this.crInst.release();
-        this.crInst = null;
-        this.context = null;
-        if (instance != null) {
-            instance = null;
+        try {
+            HttpUtil.getInstance().release();
+            if (this.crInst != null) {
+                this.crInst.release();
+                this.crInst = null;
+            }
+            if (this.context != null) {
+                this.context = null;
+            }
+            if (instance != null) {
+                instance = null;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-
     }
 }
