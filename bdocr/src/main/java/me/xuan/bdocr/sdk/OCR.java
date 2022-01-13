@@ -133,10 +133,40 @@ public class OCR {
                 HttpUtil.getInstance().post(OCR.this.urlAppendCommonParams(ID_CARD_URL), param, idCardResultParser, new OnResultListener<IDCardResult>() {
                     public void onResult(IDCardResult result) {
                         tempImage.delete();
-                        if (listener != null) {
-                            listener.onResult(result);
-                        }
+//                        System.out.println(result);
+                        if ("normal".equals(result.getRiskType()) && "normal".equals(result.getImageStatus())) {
+                            if (listener != null) {
+                                listener.onResult(result);
+                            }
+                        } else {
+                            String errorStr;
+                            if ("copy".equals(result.getRiskType())) {
+                                errorStr = "身份证复印件无法识别";
+                            } else if ("temporary".equals(result.getRiskType())) {
+                                errorStr = "临时身份证无法识别";
+                            } else if ("screen".equals(result.getRiskType())) {
+                                errorStr = "身份证翻拍无法识别";
+                            } else if ("reversed_side".equals(result.getImageStatus())) {
+                                errorStr = "身份证正反面颠倒";
+                            } else if ("non_idcard".equals(result.getImageStatus())) {
+                                errorStr = "上传的图片中不包含身份证";
+                            } else if ("blurred".equals(result.getImageStatus())) {
+                                errorStr = "身份证模糊";
+                            } else if ("other_type_card".equals(result.getImageStatus())) {
+                                errorStr = "其他类型证照";
+                            } else if ("over_exposure".equals(result.getImageStatus())) {
+                                errorStr = "身份证关键字段反光或过曝";
+                            } else if ("over_dark".equals(result.getImageStatus())) {
+                                errorStr = "身份证欠曝（亮度过低）";
+                            } else {
+                                errorStr = "身份证识别错误，请重试";
+                            }
 
+                            OCRError error = new OCRError(OCRError.ErrorCode.SERVICE_DATA_ERROR, errorStr);
+                            if (listener != null) {
+                                listener.onError(error);
+                            }
+                        }
                     }
 
                     public void onError(OCRError error) {

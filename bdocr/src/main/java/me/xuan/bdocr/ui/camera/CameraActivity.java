@@ -459,6 +459,8 @@ public class CameraActivity extends FragmentActivity implements ShowLoadingInter
         param.setDetectDirection(true);
         // 设置图像参数压缩质量0-100, 越大图像质量越好但是请求时间越长。 不设置则默认值为20
         param.setImageQuality(20);
+        //开启身份证风险类型(身份证复印件、临时身份证、身份证翻拍、修改过的身份证)功能
+        param.setDetectRisk(true);
 
         OCR.getInstance(this).recognizeIDCard(param, new OnResultListener<IDCardResult>() {
             @Override

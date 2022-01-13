@@ -143,9 +143,9 @@ public class IDCardResult extends ResponseResult {
         if (TextUtils.isEmpty(this.idCardSide)) {
             return "";
         } else if (this.idCardSide.equals(IDCardParams.ID_CARD_SIDE_FRONT)) {
-            return "IDCardResult front{direction=" + this.direction + ", wordsResultNumber=" + this.wordsResultNumber + ", address=" + this.address + ", idNumber=" + this.idNumber + ", birthday=" + this.birthday + ", name=" + this.name + ", gender=" + this.gender + ", ethnic=" + this.ethnic + '}';
+            return "IDCardResult front{direction=" + this.direction + ", wordsResultNumber=" + this.wordsResultNumber + ", address=" + this.address + ", idNumber=" + this.idNumber + ", birthday=" + this.birthday + ", name=" + this.name + ", gender=" + this.gender + ", ethnic=" + this.ethnic + ", imageStatus=" + this.imageStatus + ", riskType=" + this.riskType + '}';
         } else {
-            return this.idCardSide.equals(IDCardParams.ID_CARD_SIDE_BACK) ? "IDCardResult back{, signDate=" + this.signDate + ", expiryDate=" + this.expiryDate + ", issueAuthority=" + this.issueAuthority + '}' : "";
+            return this.idCardSide.equals(IDCardParams.ID_CARD_SIDE_BACK) ? "IDCardResult back{, signDate=" + this.signDate + ", expiryDate=" + this.expiryDate + ", issueAuthority=" + this.issueAuthority + ", imageStatus=" + this.imageStatus + ", riskType=" + this.riskType + '}' : "";
         }
     }
 }
