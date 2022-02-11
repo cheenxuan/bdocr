@@ -50,6 +50,10 @@ public class IDCardParams implements RequestParams {
         this.detectRisk = detectRisk;
     }
 
+    public boolean getDetectRisk() {
+        return this.detectRisk;
+    }
+
     public int getImageQuality() {
         return this.imageQuality;
     }
