@@ -180,20 +180,27 @@ public class Camera1Control implements ICameraControl {
             CameraThreadPool.execute(new Runnable() {
                 @Override
                 public void run() {
-                    camera.takePicture(null, null, new Camera.PictureCallback() {
-                        @Override
-                        public void onPictureTaken(byte[] data, Camera camera) {
-                            startPreview();
-                            takingPicture.set(false);
-                            if (onTakePictureCallback != null) {
-                                onTakePictureCallback.onPictureTaken(data);
+                    try {
+                        camera.takePicture(null, null, new Camera.PictureCallback() {
+                            @Override
+                            public void onPictureTaken(byte[] data, Camera camera) {
+                                startPreview();
+                                takingPicture.set(false);
+                                if (onTakePictureCallback != null) {
+                                    onTakePictureCallback.onPictureTaken(data);
+                                }
                             }
-                        }
-                    });
+                        });
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        startPreview();
+                        takingPicture.set(false);
+                    }
+
                 }
             });
 
-        } catch (RuntimeException e) {
+        } catch (Exception e) {
             e.printStackTrace();
             startPreview();
             takingPicture.set(false);
@@ -403,7 +410,7 @@ public class Camera1Control implements ICameraControl {
                 return size;
             }
         }
-        
+
         return tempSizes.get(tempSizes.size() - 1);
 //        return tempSizes.get(0);
     }

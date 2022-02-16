@@ -523,9 +523,14 @@ public class CameraView extends FrameLayout {
             CameraThreadPool.execute(new Runnable() {
                 @Override
                 public void run() {
-                    final int rotation = ImageUtil.getOrientation(data);
-                    Bitmap bitmap = crop(file, data, rotation);
-                    callback.onPictureTaken(bitmap);
+                    try {
+                        final int rotation = ImageUtil.getOrientation(data);
+                        Bitmap bitmap = crop(file, data, rotation);
+                        callback.onPictureTaken(bitmap);
+                    }catch (Exception e){
+                        e.printStackTrace();
+                        callback.onPictureTaken(null);
+                    }
                 }
             });
         }

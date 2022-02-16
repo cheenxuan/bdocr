@@ -29,7 +29,6 @@ import androidx.fragment.app.FragmentActivity;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
 
 import me.xuan.bdocr.R;
@@ -80,6 +79,11 @@ public class CameraActivity extends FragmentActivity implements ShowLoadingInter
     private static final int REQUEST_CODE_PICK_IMAGE = 100;
     private static final int PERMISSIONS_REQUEST_CAMERA = 800;
     private static final int PERMISSIONS_EXTERNAL_STORAGE = 801;
+
+    //全局定义
+    private long lastClickTime = 0L;
+    // 两次点击间隔不能少于1000ms
+    private static final int FAST_CLICK_DELAY_TIME = 1000;
 
     private File outputFile;
     private String contentType;
@@ -291,7 +295,11 @@ public class CameraActivity extends FragmentActivity implements ShowLoadingInter
     private View.OnClickListener takeButtonOnClickListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-            cameraView.takePicture(outputFile, takePictureCallback);
+            if (System.currentTimeMillis() - lastClickTime >= FAST_CLICK_DELAY_TIME) {
+                cameraView.takePicture(outputFile, takePictureCallback);
+                lastClickTime = System.currentTimeMillis();
+            }
+            
         }
     };
 
@@ -301,13 +309,17 @@ public class CameraActivity extends FragmentActivity implements ShowLoadingInter
             handler.post(new Runnable() {
                 @Override
                 public void run() {
-                    takePictureContainer.setVisibility(View.INVISIBLE);
-                    if (cropMaskView.getMaskType() == MaskView.MASK_TYPE_NONE) {
-                        cropView.setFilePath(outputFile.getAbsolutePath());
-                        showCrop();
-                    } else {
-                        displayImageView.setImageBitmap(bitmap);
-                        showResultConfirm();
+                    if(bitmap != null){
+                        takePictureContainer.setVisibility(View.INVISIBLE);
+                        if (cropMaskView.getMaskType() == MaskView.MASK_TYPE_NONE) {
+                            cropView.setFilePath(outputFile.getAbsolutePath());
+                            showCrop();
+                        } else {
+                            displayImageView.setImageBitmap(bitmap);
+                            showResultConfirm();
+                        } 
+                    }else{
+                        showTakePicture();
                     }
                 }
             });
@@ -460,7 +472,7 @@ public class CameraActivity extends FragmentActivity implements ShowLoadingInter
         // 设置图像参数压缩质量0-100, 越大图像质量越好但是请求时间越长。 不设置则默认值为20
         param.setImageQuality(20);
         //开启身份证风险类型(身份证复印件、临时身份证、身份证翻拍、修改过的身份证)功能
-        param.setDetectRisk(true);
+        param.setDetectRisk(false);
 
         OCR.getInstance(this).recognizeIDCard(param, new OnResultListener<IDCardResult>() {
             @Override
