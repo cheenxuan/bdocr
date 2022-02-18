@@ -1,5 +1,7 @@
 package me.xuan.bdocr.sdk.model;
 
+import androidx.annotation.NonNull;
+
 /**
  * Author: xuan
  * Created on 2019/10/23 14:30.
@@ -12,6 +14,7 @@ public class AccessToken {
     private String tokenJson;
     private String lic;
     private int expiresIn;
+    private long requestTime = -1;
     private volatile long expiresTime = -1L;
 
     public AccessToken() {
@@ -65,5 +68,19 @@ public class AccessToken {
 
     public void setExpireTime(long expiresTime) {
         this.expiresTime = expiresTime;
+    }
+    
+    public void setRequestTime(long requestTime) {
+        this.requestTime = requestTime;
+    }
+    
+    public long getRequestTime() {
+        return this.requestTime;
+    }
+
+    @NonNull
+    @Override
+    public String toString() {
+        return "accessToken = "  + accessToken +"\nlic = " + lic + "\nexpiresIn = " + expiresIn;
     }
 }

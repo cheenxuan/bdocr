@@ -2,6 +2,7 @@ package me.xuan.bdocr.sdk.utils;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+
 import me.xuan.bdocr.sdk.exception.SDKError;
 import me.xuan.bdocr.sdk.model.AccessToken;
 
@@ -34,6 +35,11 @@ public class AccessTokenParser implements Parser<AccessToken> {
                         }
 
                         accessToken.setExpiresIn(data.optInt("expires_in"));
+                        try {
+                            accessToken.setExpireTime(System.currentTimeMillis());
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
                         return accessToken;
                     } else {
                         return null;

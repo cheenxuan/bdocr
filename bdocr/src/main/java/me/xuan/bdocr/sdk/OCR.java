@@ -200,6 +200,7 @@ public class OCR {
 
                     public void onError(OCRError error) {
                         tempImage.delete();
+                        
                         if (listener != null) {
                             listener.onError(error);
                         }
@@ -261,6 +262,7 @@ public class OCR {
         this.sk = sk;
         this.init(context);
         AccessToken tokenFromCache = this.getByCache();
+//        System.out.println("OCR -> initAccessTokenWithAkSk -> " + tokenFromCache);
         if (tokenFromCache != null) {
             this.accessToken = tokenFromCache;
             listener.onResult(tokenFromCache);
@@ -346,6 +348,7 @@ public class OCR {
     }
 
     private synchronized boolean isTokenInvalid() {
+//        System.out.println(this.accessToken);
         return null == this.accessToken || this.accessToken.hasExpired();
     }
 
@@ -388,6 +391,8 @@ public class OCR {
         sb.append("&aipSdk=Android");
         sb.append("&aipSdkVersion=").append("1_4_4");
         sb.append("&aipDevid=").append(DeviceUtil.getDeviceId(this.context));
+
+//        System.out.println("urlAppendCommonParams ->  url -> " + sb.toString());
         return sb.toString();
     }
 

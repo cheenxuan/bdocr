@@ -108,6 +108,7 @@ public class HttpUtil {
             public void onResponse(String resultStr) {
                 if (resultStr != null && !TextUtils.isEmpty(resultStr)) {
                     try {
+//                        System.out.println("HttpUtil -> getAccessToken -> " + resultStr);
                         AccessToken accessToken = (AccessToken)accessTokenParser.parse(resultStr);
                         if (accessToken != null) {
                             OCR.getInstance((Context)null).setAccessToken(accessToken);

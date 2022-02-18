@@ -36,12 +36,14 @@ import me.xuan.bdocr.ShowLoadingInterface;
 import me.xuan.bdocr.sdk.OCR;
 import me.xuan.bdocr.sdk.OnResultListener;
 import me.xuan.bdocr.sdk.exception.OCRError;
+import me.xuan.bdocr.sdk.model.AccessToken;
 import me.xuan.bdocr.sdk.model.BankCardParams;
 import me.xuan.bdocr.sdk.model.BankCardResult;
 import me.xuan.bdocr.sdk.model.IDCardParams;
 import me.xuan.bdocr.sdk.model.IDCardResult;
 import me.xuan.bdocr.ui.crop.CropView;
 import me.xuan.bdocr.ui.crop.FrameOverlayView;
+import me.xuan.bdocr.ui.util.EncrypDES;
 
 public class CameraActivity extends FragmentActivity implements ShowLoadingInterface {
 
@@ -88,7 +90,7 @@ public class CameraActivity extends FragmentActivity implements ShowLoadingInter
     private File outputFile;
     private String contentType;
     private Handler handler = new Handler();
-    
+
     private boolean isAutoRecg;
 
     private OCRCameraLayout takePictureContainer;
@@ -218,11 +220,11 @@ public class CameraActivity extends FragmentActivity implements ShowLoadingInter
                 cropMaskView.setVisibility(View.INVISIBLE);
                 break;
         }
-        
+
         cameraView.setMaskType(maskType, this);
         cropMaskView.setMaskType(maskType);
     }
-    
+
 
     private void showTakePicture() {
         cameraView.getCameraControl().resume();
@@ -299,7 +301,7 @@ public class CameraActivity extends FragmentActivity implements ShowLoadingInter
                 cameraView.takePicture(outputFile, takePictureCallback);
                 lastClickTime = System.currentTimeMillis();
             }
-            
+
         }
     };
 
@@ -309,7 +311,7 @@ public class CameraActivity extends FragmentActivity implements ShowLoadingInter
             handler.post(new Runnable() {
                 @Override
                 public void run() {
-                    if(bitmap != null){
+                    if (bitmap != null) {
                         takePictureContainer.setVisibility(View.INVISIBLE);
                         if (cropMaskView.getMaskType() == MaskView.MASK_TYPE_NONE) {
                             cropView.setFilePath(outputFile.getAbsolutePath());
@@ -317,8 +319,8 @@ public class CameraActivity extends FragmentActivity implements ShowLoadingInter
                         } else {
                             displayImageView.setImageBitmap(bitmap);
                             showResultConfirm();
-                        } 
-                    }else{
+                        }
+                    } else {
                         showTakePicture();
                     }
                 }
@@ -449,15 +451,7 @@ public class CameraActivity extends FragmentActivity implements ShowLoadingInter
 
             @Override
             public void onError(OCRError error) {
-                hideRecgLoading();
-                Toast.makeText(CameraActivity.this, "银行卡识别失败：" + error.getMessage(), Toast.LENGTH_LONG).show();
-                handler.postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        cropView.setFilePath(null);
-                        showTakePicture();
-                    }
-                }, 1000);
+                showError(error);
             }
         });
     }
@@ -498,16 +492,7 @@ public class CameraActivity extends FragmentActivity implements ShowLoadingInter
 
             @Override
             public void onError(OCRError error) {
-                hideRecgLoading();
-//                Log.i("IDCARD", error.getMessage());
-                Toast.makeText(CameraActivity.this, "身份证识别失败：" + error.getMessage(), Toast.LENGTH_LONG).show();
-                handler.postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        cropView.setFilePath(null);
-                        showTakePicture();
-                    }
-                }, 1000);
+                showError(error);
             }
         });
     }
@@ -586,7 +571,7 @@ public class CameraActivity extends FragmentActivity implements ShowLoadingInter
             } else {
                 if (!contentType.equals(CONTENT_TYPE_ALBUM)) {
                     cameraView.getCameraControl().resume();
-                }else{
+                } else {
                     setResult(Activity.RESULT_CANCELED);
                     finish();
                 }
@@ -633,5 +618,17 @@ public class CameraActivity extends FragmentActivity implements ShowLoadingInter
 
     @Override
     public void hideRecgLoading() {
+    }
+
+    public void showError(OCRError error) {
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                hideRecgLoading();
+                cropView.setFilePath(null);
+                showTakePicture();
+            }
+        }, 1000);
+
     }
 }
