@@ -36,14 +36,12 @@ import me.xuan.bdocr.ShowLoadingInterface;
 import me.xuan.bdocr.sdk.OCR;
 import me.xuan.bdocr.sdk.OnResultListener;
 import me.xuan.bdocr.sdk.exception.OCRError;
-import me.xuan.bdocr.sdk.model.AccessToken;
 import me.xuan.bdocr.sdk.model.BankCardParams;
 import me.xuan.bdocr.sdk.model.BankCardResult;
 import me.xuan.bdocr.sdk.model.IDCardParams;
 import me.xuan.bdocr.sdk.model.IDCardResult;
 import me.xuan.bdocr.ui.crop.CropView;
 import me.xuan.bdocr.ui.crop.FrameOverlayView;
-import me.xuan.bdocr.ui.util.EncrypDES;
 
 public class CameraActivity extends FragmentActivity implements ShowLoadingInterface {
 
