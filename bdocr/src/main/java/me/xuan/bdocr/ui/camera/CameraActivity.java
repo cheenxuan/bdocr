@@ -618,6 +618,10 @@ public class CameraActivity extends FragmentActivity implements ShowLoadingInter
     public void hideRecgLoading() {
     }
 
+    public String getContentType() {
+        return this.contentType;
+    }
+
     public void showError(OCRError error) {
         handler.postDelayed(new Runnable() {
             @Override
