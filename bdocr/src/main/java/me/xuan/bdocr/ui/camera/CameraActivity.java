@@ -266,6 +266,12 @@ public class CameraActivity extends FragmentActivity implements ShowLoadingInter
     };
 
     private void openAlbum() {
+        // TODO: 2/21/22 修复相机模式下开启手电筒 然后选取相册照片导致的报错 
+        if (cameraView.getCameraControl().getFlashMode() == ICameraControl.FLASH_MODE_TORCH) {
+            cameraView.getCameraControl().setFlashMode(ICameraControl.FLASH_MODE_OFF);
+            updateFlashMode();
+        } 
+        
         if (ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.READ_EXTERNAL_STORAGE)
                 != PackageManager.PERMISSION_GRANTED) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
@@ -563,9 +569,13 @@ public class CameraActivity extends FragmentActivity implements ShowLoadingInter
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == REQUEST_CODE_PICK_IMAGE) {
             if (resultCode == Activity.RESULT_OK) {
-                Uri uri = data.getData();
-                cropView.setFilePath(getRealPathFromURI(uri));
-                showCrop();
+                try {
+                    Uri uri = data.getData();
+                    cropView.setFilePath(getRealPathFromURI(uri));
+                    showCrop();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             } else {
                 if (!contentType.equals(CONTENT_TYPE_ALBUM)) {
                     cameraView.getCameraControl().resume();

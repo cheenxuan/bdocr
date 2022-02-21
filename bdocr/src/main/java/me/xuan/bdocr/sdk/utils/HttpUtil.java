@@ -53,6 +53,13 @@ public class HttpUtil {
     public void init() {
         this.handler = new Handler(Looper.getMainLooper());
     }
+    
+    private Handler getHandler(){
+        if (this.handler == null) {
+            this.handler = new Handler(Looper.getMainLooper());
+        }
+        return this.handler;
+    }
 
     public <T> void post(String path, RequestParams params, final Parser<T> parser, final OnResultListener<T> listener) {
         HttpsClient cl = new HttpsClient();
@@ -63,7 +70,7 @@ public class HttpUtil {
         reqInfo.build();
         cl.newCall(reqInfo).enqueue(new Callback() {
             public void onFailure(final Throwable e) {
-                HttpUtil.this.handler.post(new Runnable() {
+                getHandler().post(new Runnable() {
                     public void run() {
                         HttpUtil.throwSDKError(listener, 283504, "Network error", e);
                     }
@@ -75,13 +82,13 @@ public class HttpUtil {
 
                 try {
                     final T result = parser.parse(responseString);
-                    HttpUtil.this.handler.post(new Runnable() {
+                    getHandler().post(new Runnable() {
                         public void run() {
                             listener.onResult(result);
                         }
                     });
                 } catch (final OCRError var4) {
-                    HttpUtil.this.handler.post(new Runnable() {
+                    getHandler().post(new Runnable() {
                         public void run() {
                             listener.onError(var4);
                         }
