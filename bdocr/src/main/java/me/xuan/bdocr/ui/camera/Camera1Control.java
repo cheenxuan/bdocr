@@ -243,7 +243,6 @@ public class Camera1Control implements ICameraControl {
 
     private void initCamera() {
         try {
-//            Log.d(TAG, "initCamera() camera = " + camera);
             if (camera == null) {
                 Camera.CameraInfo cameraInfo = new Camera.CameraInfo();
                 for (int i = 0; i < Camera.getNumberOfCameras(); i++) {
@@ -255,7 +254,6 @@ public class Camera1Control implements ICameraControl {
                 try {
                     camera = Camera.open(cameraId);
                 } catch (Throwable e) {
-//                    Log.d(TAG, "initCamera() open camera failed " + e.getMessage());
                     e.printStackTrace();
                     startPreview();
                     return;
@@ -286,8 +284,12 @@ public class Camera1Control implements ICameraControl {
         @Override
         public void onSurfaceTextureSizeChanged(SurfaceTexture surface, int width, int height) {
             opPreviewSize(previewView.getWidth(), previewView.getHeight());
-            startPreview();
-            setPreviewCallbackImpl();
+            try {
+                startPreview();
+                setPreviewCallbackImpl();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
 
         @Override
@@ -357,7 +359,6 @@ public class Camera1Control implements ICameraControl {
                 camera.setDisplayOrientation(getSurfaceOrientation());
                 camera.setParameters(parameters);
             } catch (RuntimeException e) {
-//                Log.d(TAG, "opPreviewSize setParameters failed " + e.getMessage());
                 e.printStackTrace();
             }
         }
