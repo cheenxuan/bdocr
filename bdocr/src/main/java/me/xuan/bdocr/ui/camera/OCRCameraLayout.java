@@ -10,6 +10,7 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.util.AttributeSet;
+import android.util.TypedValue;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
@@ -115,7 +116,7 @@ public class OCRCameraLayout extends FrameLayout {
         ViewGroup.MarginLayoutParams leftDownViewLayoutParams = (MarginLayoutParams) leftDownView.getLayoutParams();
         ViewGroup.MarginLayoutParams rightUpViewLayoutParams = (MarginLayoutParams) rightUpView.getLayoutParams();
         if (r < b) {
-            int contentHeight = width * 7 / 6;
+            int contentHeight = width * 4 / 3;
             int heightLeft = height - contentHeight;
             contentView.layout(l, t, r, contentHeight);
 
@@ -125,24 +126,27 @@ public class OCRCameraLayout extends FrameLayout {
             backgroundRect.bottom = height;
 
 
-            if (idCardExamView.getVisibility() == View.VISIBLE) {
+            if (idCardExamView != null && idCardExamView.getVisibility() == View.VISIBLE) {
                 int examHeight = idCardExamView.getMeasuredHeight();
+                contentHeight -= applyUnit(TypedValue.COMPLEX_UNIT_DIP,66f);
                 idCardExamView.layout(l, contentHeight, r, contentHeight + examHeight);
                 contentHeight += examHeight;
-                
+
                 heightLeft = height - contentHeight;
             }
 
-            if (idCardBackExamView.getVisibility() == View.VISIBLE) {
+            if (idCardBackExamView != null && idCardBackExamView.getVisibility() == View.VISIBLE) {
                 int examHeight = idCardBackExamView.getMeasuredHeight();
+                contentHeight -= applyUnit(TypedValue.COMPLEX_UNIT_DIP,66f);
                 idCardBackExamView.layout(l, contentHeight, r, contentHeight + examHeight);
                 contentHeight += examHeight;
 
                 heightLeft = height - contentHeight;
             }
-            
-            if (bankCardExamView.getVisibility() == View.VISIBLE) {
+
+            if (bankCardExamView != null && bankCardExamView.getVisibility() == View.VISIBLE) {
                 int examHeight = bankCardExamView.getMeasuredHeight();
+                contentHeight -= applyUnit(TypedValue.COMPLEX_UNIT_DIP,66f);
                 bankCardExamView.layout(l, contentHeight, r, contentHeight + examHeight);
                 contentHeight += examHeight;
 
@@ -166,7 +170,7 @@ public class OCRCameraLayout extends FrameLayout {
             top = contentHeight + (heightLeft - rightUpView.getMeasuredHeight()) / 2;
             rightUpView.layout(left, top, left + rightUpView.getMeasuredWidth(), top + rightUpView.getMeasuredHeight());
         } else {
-            int contentWidth = height * 7 / 6;
+            int contentWidth = height * 4 / 3;
             int widthLeft = width - contentWidth;
             contentView.layout(l, t, contentWidth, height);
 
@@ -199,5 +203,9 @@ public class OCRCameraLayout extends FrameLayout {
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
         canvas.drawRect(backgroundRect, paint);
+    }
+
+    private int applyUnit(int unit, float value) {
+        return (int) TypedValue.applyDimension(unit, value, getResources().getDisplayMetrics());
     }
 }
