@@ -118,8 +118,33 @@ public class CameraActivity extends FragmentActivity implements ShowLoadingInter
         super.onCreate(savedInstanceState);
         setContentView(R.layout.bd_ocr_activity_camera);
 
+        
+
         takePictureContainer = (OCRCameraLayout) findViewById(R.id.take_picture_container);
         confirmResultContainer = (OCRCameraLayout) findViewById(R.id.confirm_result_container);
+
+        View idCardExamView  = (View) findViewById(R.id.id_card_exam_container);
+        View idCardBackExamView  = (View) findViewById(R.id.id_card_back_exam_container);
+        View bankCardExamView  = (View) findViewById(R.id.bank_card_exam_container);
+
+        contentType = getIntent().getStringExtra(KEY_CONTENT_TYPE);
+        if(contentType.equals(CONTENT_TYPE_ID_CARD_FRONT)){
+            idCardExamView.setVisibility(View.VISIBLE);
+        }else{
+            idCardExamView.setVisibility(View.GONE);
+        }
+
+        if(contentType.equals(CONTENT_TYPE_ID_CARD_BACK)){
+            idCardBackExamView.setVisibility(View.VISIBLE);
+        }else{
+            idCardBackExamView.setVisibility(View.GONE);
+        }
+
+        if(contentType.equals(CONTENT_TYPE_BANK_CARD)){
+            bankCardExamView.setVisibility(View.VISIBLE);
+        }else{
+            bankCardExamView.setVisibility(View.GONE);
+        }
 
         cameraView = (CameraView) findViewById(R.id.camera_view);
         cameraView.getCameraControl().setPermissionCallback(permissionCallback);
@@ -143,7 +168,6 @@ public class CameraActivity extends FragmentActivity implements ShowLoadingInter
         cropContainer.findViewById(R.id.cancel_button).setOnClickListener(cropCancelButtonListener);
 
         setOrientation(getResources().getConfiguration());
-
 
         initParams();
 

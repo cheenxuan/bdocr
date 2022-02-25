@@ -8,5 +8,8 @@
         <attr name="centerView" format="reference"/>
         <attr name="leftDownView" format="reference"/>
         <attr name="rightUpView" format="reference"/>
+        <attr name="idCardExamView" format="reference"/>
+        <attr name="idCardBackExamView" format="reference"/>
+        <attr name="bankCardExamView" format="reference"/>
     </declare-styleable>
 </resources>

@@ -1,54 +1,74 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!--
+<?xml version="1.0" encoding="utf-8"?><!--
   ~ Copyright (C) 2017 Baidu, Inc. All Rights Reserved.
   -->
-<me.xuan.bdocr.ui.camera.OCRCameraLayout
-        xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:app="http://schemas.android.com/apk/res-auto"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        app:contentView="@+id/camera_view"
-        app:leftDownView="@+id/album_button"
-        app:centerView="@+id/take_photo_button"
-        app:rightUpView="@+id/light_button">
+<me.xuan.bdocr.ui.camera.OCRCameraLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    app:bankCardExamView="@+id/bank_card_exam_container"
+    app:centerView="@+id/take_photo_button"
+    app:contentView="@+id/camera_view"
+    app:idCardExamView="@+id/id_card_exam_container"
+    app:idCardBackExamView="@+id/id_card_back_exam_container"
+    app:leftDownView="@+id/album_button"
+    app:rightUpView="@+id/light_button">
 
     <me.xuan.bdocr.ui.camera.CameraView
-            android:id="@+id/camera_view"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
+        android:id="@+id/camera_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
     </me.xuan.bdocr.ui.camera.CameraView>
 
+    <include
+        android:id="@+id/id_card_exam_container"
+        layout="@layout/ocr_id_card_example"
+        android:layout_width="match_parent"
+        android:layout_height="150dp"
+        android:visibility="gone" />
+
+    <include
+        android:id="@+id/id_card_back_exam_container"
+        layout="@layout/ocr_id_card_back_example"
+        android:layout_width="match_parent"
+        android:layout_height="150dp"
+        android:visibility="gone" />
+
+    <include
+        android:id="@+id/bank_card_exam_container"
+        layout="@layout/ocr_bank_card_example"
+        android:layout_width="match_parent"
+        android:layout_height="150dp"
+        android:visibility="gone" />
+
 
     <ImageView
-            android:id="@+id/album_button"
-            android:layout_width="60dp"
-            android:layout_height="54dp"
-            android:padding="18dp"
-            android:layout_marginLeft="@dimen/camera_left_margin"
-            android:layout_marginStart="@dimen/camera_left_margin"
-            android:layout_marginBottom="@dimen/camera_bottom_margin"
-            android:src="@drawable/bd_ocr_gallery"/>
+        android:id="@+id/album_button"
+        android:layout_width="60dp"
+        android:layout_height="54dp"
+        android:layout_marginStart="@dimen/camera_left_margin"
+        android:layout_marginLeft="@dimen/camera_left_margin"
+        android:padding="18dp"
+        android:src="@drawable/bd_ocr_gallery" />
 
 
     <ImageView
-            android:id="@+id/take_photo_button"
-            android:layout_width="58dp"
-            android:layout_height="58dp"
-            android:clickable="true"
-            android:background="@drawable/bd_ocr_take_photo_selector"/>
+        android:id="@+id/take_photo_button"
+        android:layout_width="58dp"
+        android:layout_height="58dp"
+        android:background="@drawable/bd_ocr_take_photo_selector"
+        android:clickable="true" />
 
 
     <ImageView
-            android:id="@+id/light_button"
-            android:layout_width="60dp"
-            android:layout_height="60dp"
-            android:padding="15dp"
-            android:clickable="true"
-            android:layout_marginRight="@dimen/camera_right_margin"
-            android:layout_marginEnd="@dimen/camera_right_margin"
-            android:layout_marginTop="@dimen/camera_top_margin"
-            android:paddingBottom="3dp"
-            android:src="@drawable/bd_ocr_light_off"
-            />
+        android:id="@+id/light_button"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:layout_marginEnd="@dimen/camera_right_margin"
+        android:layout_marginRight="@dimen/camera_right_margin"
+        android:clickable="true"
+        android:padding="15dp"
+        android:paddingBottom="3dp"
+        android:src="@drawable/bd_ocr_light_off" />
 
 </me.xuan.bdocr.ui.camera.OCRCameraLayout>

@@ -13,6 +13,7 @@ import android.util.AttributeSet;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
+
 import me.xuan.bdocr.R;
 
 
@@ -26,11 +27,17 @@ public class OCRCameraLayout extends FrameLayout {
     private View centerView;
     private View leftDownView;
     private View rightUpView;
+    private View idCardExamView;
+    private View idCardBackExamView;
+    private View bankCardExamView;
 
     private int contentViewId;
     private int centerViewId;
     private int leftDownViewId;
     private int rightUpViewId;
+    private int idCardExamViewId;
+    private int idCardBackExamViewId;
+    private int bankCardExamViewId;
 
     public void setOrientation(int orientation) {
         if (this.orientation == orientation) {
@@ -68,6 +75,9 @@ public class OCRCameraLayout extends FrameLayout {
             centerViewId = a.getResourceId(R.styleable.OCRCameraLayout_centerView, -1);
             leftDownViewId = a.getResourceId(R.styleable.OCRCameraLayout_leftDownView, -1);
             rightUpViewId = a.getResourceId(R.styleable.OCRCameraLayout_rightUpView, -1);
+            idCardExamViewId = a.getResourceId(R.styleable.OCRCameraLayout_idCardExamView, -1);
+            idCardBackExamViewId = a.getResourceId(R.styleable.OCRCameraLayout_idCardBackExamView, -1);
+            bankCardExamViewId = a.getResourceId(R.styleable.OCRCameraLayout_bankCardExamView, -1);
         } finally {
             a.recycle();
         }
@@ -82,6 +92,9 @@ public class OCRCameraLayout extends FrameLayout {
         }
         leftDownView = findViewById(leftDownViewId);
         rightUpView = findViewById(rightUpViewId);
+        idCardExamView = findViewById(idCardExamViewId);
+        idCardBackExamView = findViewById(idCardBackExamViewId);
+        bankCardExamView = findViewById(bankCardExamViewId);
     }
 
     private Rect backgroundRect = new Rect();
@@ -102,7 +115,7 @@ public class OCRCameraLayout extends FrameLayout {
         ViewGroup.MarginLayoutParams leftDownViewLayoutParams = (MarginLayoutParams) leftDownView.getLayoutParams();
         ViewGroup.MarginLayoutParams rightUpViewLayoutParams = (MarginLayoutParams) rightUpView.getLayoutParams();
         if (r < b) {
-            int contentHeight = width * 4 / 3;
+            int contentHeight = width * 7 / 6;
             int heightLeft = height - contentHeight;
             contentView.layout(l, t, r, contentHeight);
 
@@ -110,6 +123,31 @@ public class OCRCameraLayout extends FrameLayout {
             backgroundRect.top = contentHeight;
             backgroundRect.right = width;
             backgroundRect.bottom = height;
+
+
+            if (idCardExamView.getVisibility() == View.VISIBLE) {
+                int examHeight = idCardExamView.getMeasuredHeight();
+                idCardExamView.layout(l, contentHeight, r, contentHeight + examHeight);
+                contentHeight += examHeight;
+                
+                heightLeft = height - contentHeight;
+            }
+
+            if (idCardBackExamView.getVisibility() == View.VISIBLE) {
+                int examHeight = idCardBackExamView.getMeasuredHeight();
+                idCardBackExamView.layout(l, contentHeight, r, contentHeight + examHeight);
+                contentHeight += examHeight;
+
+                heightLeft = height - contentHeight;
+            }
+            
+            if (bankCardExamView.getVisibility() == View.VISIBLE) {
+                int examHeight = bankCardExamView.getMeasuredHeight();
+                bankCardExamView.layout(l, contentHeight, r, contentHeight + examHeight);
+                contentHeight += examHeight;
+
+                heightLeft = height - contentHeight;
+            }
 
             // layout centerView;
             if (centerView != null) {
@@ -128,7 +166,7 @@ public class OCRCameraLayout extends FrameLayout {
             top = contentHeight + (heightLeft - rightUpView.getMeasuredHeight()) / 2;
             rightUpView.layout(left, top, left + rightUpView.getMeasuredWidth(), top + rightUpView.getMeasuredHeight());
         } else {
-            int contentWidth = height * 4 / 3;
+            int contentWidth = height * 7 / 6;
             int widthLeft = width - contentWidth;
             contentView.layout(l, t, contentWidth, height);
 
