@@ -456,6 +456,8 @@ public class CameraActivity extends FragmentActivity implements ShowLoadingInter
 
     private void recBankCard(String filePath) {
         BankCardParams param = new BankCardParams();
+        // 设置方向检测
+        param.setDetectDirection(true);
         param.setImageFile(new File(filePath));
         OCR.getInstance(this).recognizeBankCard(param, new OnResultListener<BankCardResult>() {
             @Override

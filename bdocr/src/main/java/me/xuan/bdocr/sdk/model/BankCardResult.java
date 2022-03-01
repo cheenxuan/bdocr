@@ -9,6 +9,7 @@ package me.xuan.bdocr.sdk.model;
 public class BankCardResult extends ResponseResult {
     private String bankCardNumber;
     private String bankName;
+    private int direction;
     private BankCardResult.BankCardType bankCardType;
 
     public BankCardResult() {
@@ -20,6 +21,14 @@ public class BankCardResult extends ResponseResult {
 
     public void setBankName(String bankName) {
         this.bankName = bankName;
+    }
+
+    public int getDirection() {
+        return this.direction;
+    }
+
+    public void setDirection(int direction) {
+        this.direction = direction;
     }
 
     public BankCardResult.BankCardType getBankCardType() {

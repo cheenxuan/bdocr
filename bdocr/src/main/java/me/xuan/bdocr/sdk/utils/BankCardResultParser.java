@@ -26,6 +26,7 @@ public class BankCardResultParser implements Parser<BankCardResult> {
             } else {
                 BankCardResult result = new BankCardResult();
                 result.setLogId(jsonObject.optLong("log_id"));
+                result.setDirection(jsonObject.optInt("direction", -1));
                 result.setJsonRes(json);
                 JSONObject resultObject = jsonObject.optJSONObject("result");
                 if (resultObject != null) {

@@ -269,8 +269,25 @@ public class OCR {
                 HttpUtil.getInstance().post(OCR.this.urlAppendCommonParams(BANK_CARD_URL), params, bankCardResultParser, new OnResultListener<BankCardResult>() {
                     public void onResult(BankCardResult result) {
                         tempImage.delete();
-                        if (listener != null) {
-                            listener.onResult(result);
+                        if (0 == result.getDirection()) {
+                            if (listener != null) {
+                                listener.onResult(result);
+                            }
+                        } else {
+                            int errorCode;
+                            if (1 == result.getDirection()) {
+                                errorCode = 1000001;
+                            } else if (2 == result.getDirection()) {
+                                errorCode = 1000002;
+                            } else if (3 == result.getDirection()) {
+                                errorCode = 1000003;
+                            } else {
+                                errorCode = OCRError.ErrorCode.SERVICE_DATA_ERROR;
+                            }
+                            OCRError error = new OCRError(errorCode, "银行卡图像朝向不正确，请重试");
+                            if (listener != null) {
+                                listener.onError(error);
+                            }
                         }
                     }
 
