@@ -30,7 +30,6 @@
         <me.xuan.bdocr.ui.camera.MaskView
                 android:id="@+id/crop_mask_view"
                 android:layout_width="match_parent"
-            android:visibility="gone"
                 android:layout_height="match_parent"/>
 
     </me.xuan.bdocr.ui.camera.OCRFrameLayout>

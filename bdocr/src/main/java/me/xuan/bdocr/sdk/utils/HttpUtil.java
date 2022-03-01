@@ -15,6 +15,9 @@ import me.xuan.bdocr.sdk.utils.HttpsClient.Callback;
 import me.xuan.bdocr.sdk.utils.HttpsClient.RequestBody;
 import me.xuan.bdocr.sdk.utils.HttpsClient.RequestInfo;
 
+import static me.xuan.bdocr.sdk.exception.SDKError.ErrorCode.ACCESS_TOKEN_DATA_ERROR;
+import static me.xuan.bdocr.sdk.exception.SDKError.ErrorCode.NETWORK_REQUEST_ERROR;
+
 /**
  * Author: xuan
  * Created on 2019/10/23 14:39.
@@ -109,29 +112,28 @@ public class HttpUtil {
         reqInfo.build();
         cl.newCall(reqInfo).enqueue(new Callback() {
             public void onFailure(Throwable e) {
-                HttpUtil.throwSDKError(listener, 283504, "Network error", e);
+                HttpUtil.throwSDKError(listener, NETWORK_REQUEST_ERROR, "Network error", e);
             }
 
             public void onResponse(String resultStr) {
                 if (resultStr != null && !TextUtils.isEmpty(resultStr)) {
                     try {
-//                        System.out.println("HttpUtil -> getAccessToken -> " + resultStr);
                         AccessToken accessToken = (AccessToken)accessTokenParser.parse(resultStr);
                         if (accessToken != null) {
                             OCR.getInstance((Context)null).setAccessToken(accessToken);
                             OCR.getInstance((Context)null).setLicense(accessToken.getLic());
                             listener.onResult(accessToken);
                         } else {
-                            HttpUtil.throwSDKError(listener, 283505, "Server illegal response " + resultStr);
+                            HttpUtil.throwSDKError(listener, ACCESS_TOKEN_DATA_ERROR, "Server illegal response " + resultStr);
                         }
                     } catch (SDKError var3) {
                         listener.onError(var3);
                     } catch (Exception var4) {
-                        HttpUtil.throwSDKError(listener, 283505, "Server illegal response " + resultStr, var4);
+                        HttpUtil.throwSDKError(listener, ACCESS_TOKEN_DATA_ERROR, "Server illegal response " + resultStr, var4);
                     }
 
                 } else {
-                    HttpUtil.throwSDKError(listener, 283505, "Server illegal response " + resultStr);
+                    HttpUtil.throwSDKError(listener, ACCESS_TOKEN_DATA_ERROR, "Server illegal response " + resultStr);
                 }
             }
         });

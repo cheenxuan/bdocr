@@ -6,6 +6,7 @@ import me.xuan.bdocr.sdk.exception.OCRError;
 import me.xuan.bdocr.sdk.exception.SDKError;
 import me.xuan.bdocr.sdk.model.IDCardResult;
 import me.xuan.bdocr.sdk.model.Word;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -37,7 +38,22 @@ public class IDCardResultParser implements Parser<IDCardResult> {
                 result.setDirection(jsonObject.optInt("direction", -1));
                 result.setWordsResultNumber(jsonObject.optInt("words_result_num"));
                 result.setRiskType(jsonObject.optString("risk_type"));
+                result.setIdcardNumberType(jsonObject.optString("idcard_number_type"));
                 result.setImageStatus(jsonObject.optString("image_status"));
+                JSONObject cardQualityResult = jsonObject.optJSONObject("card_quality");
+                if (cardQualityResult != null) {
+                    try {
+                        result.setIsClear(cardQualityResult.optInt("IsClear"));
+                        result.setIsNoCover(cardQualityResult.optInt("IsNoCover"));
+                        result.setIsComplete(cardQualityResult.optInt("IsComplete"));
+                        result.setIsClearPropobility(cardQualityResult.optDouble("IsClear_propobility"));
+                        result.setIsNoCoverPropobility(cardQualityResult.optDouble("IsNoCover_propobility"));
+                        result.setIsCompletePropobility(cardQualityResult.optDouble("IsComplete_propobility"));
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+
                 JSONObject wordResult = jsonObject.optJSONObject("words_result");
                 if (TextUtils.isEmpty(this.idCardSide)) {
                     this.idCardSide = "front";

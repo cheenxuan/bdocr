@@ -14,6 +14,8 @@ public class IDCardParams implements RequestParams {
     public static final String ID_CARD_SIDE_FRONT = "front";
     public static final String ID_CARD_SIDE_BACK = "back";
     private boolean detectDirection;
+    private boolean detectQuality;
+    private boolean detectCard;
     private boolean detectRisk;
     private String idCardSide;
     private File imageFile;
@@ -28,6 +30,14 @@ public class IDCardParams implements RequestParams {
 
     public void setDetectDirection(boolean detectDirection) {
         this.detectDirection = detectDirection;
+    }
+
+    public void setDetectQuality(boolean detectQuality) {
+        this.detectQuality = detectQuality;
+    }
+
+    public void setDetectCard(boolean detectCard) {
+        this.detectCard = detectCard;
     }
 
     public String getIdCardSide() {
@@ -81,6 +91,18 @@ public class IDCardParams implements RequestParams {
             stringMap.put("detect_risk", "true");
         } else {
             stringMap.put("detect_risk", "false");
+        }
+
+        if (this.detectQuality) {
+            stringMap.put("detect_quality", "true");
+        }else{
+            stringMap.put("detect_quality", "false");
+        }
+        
+        if(this.detectCard){
+            stringMap.put("detect_card", "true");
+        }else{
+            stringMap.put("detect_card", "false");
         }
 
         return stringMap;

@@ -5,13 +5,12 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.util.Base64;
 
+import com.baidu.ocr.sdk.jni.JniInterface;
+
 import java.io.File;
 
 import me.xuan.bdocr.sdk.exception.OCRError;
 import me.xuan.bdocr.sdk.exception.SDKError;
-
-import com.baidu.ocr.sdk.jni.JniInterface;
-
 import me.xuan.bdocr.sdk.model.AccessToken;
 import me.xuan.bdocr.sdk.model.BankCardParams;
 import me.xuan.bdocr.sdk.model.BankCardResult;
@@ -133,74 +132,118 @@ public class OCR {
                 HttpUtil.getInstance().post(OCR.this.urlAppendCommonParams(ID_CARD_URL), param, idCardResultParser, new OnResultListener<IDCardResult>() {
                     public void onResult(IDCardResult result) {
                         tempImage.delete();
-                        if(param.getDetectRisk()){
-                            if ("normal".equals(result.getRiskType()) && "normal".equals(result.getImageStatus())) {
+                        if ("normal".equals(result.getImageStatus())) {
+                            if (0 == result.getDirection()) {
                                 if (listener != null) {
                                     listener.onResult(result);
                                 }
                             } else {
-                                String errorStr;
-                                if ("copy".equals(result.getRiskType())) {
-                                    errorStr = "身份证复印件无法识别";
-                                } else if ("temporary".equals(result.getRiskType())) {
-                                    errorStr = "临时身份证无法识别";
-                                } else if ("screen".equals(result.getRiskType())) {
-                                    errorStr = "身份证翻拍无法识别";
-                                } else if ("reversed_side".equals(result.getImageStatus())) {
-                                    errorStr = "身份证正反面颠倒";
-                                } else if ("non_idcard".equals(result.getImageStatus())) {
-                                    errorStr = "上传的图片中不包含身份证";
-                                } else if ("blurred".equals(result.getImageStatus())) {
-                                    errorStr = "身份证模糊";
-                                } else if ("other_type_card".equals(result.getImageStatus())) {
-                                    errorStr = "其他类型证照";
-                                } else if ("over_exposure".equals(result.getImageStatus())) {
-                                    errorStr = "身份证关键字段反光或过曝";
-                                } else if ("over_dark".equals(result.getImageStatus())) {
-                                    errorStr = "身份证欠曝（亮度过低）";
+                                int errorCode;
+                                if (1 == result.getDirection()) {
+                                    errorCode = 1000001;
+                                } else if (2 == result.getDirection()) {
+                                    errorCode = 1000002;
+                                } else if (3 == result.getDirection()) {
+                                    errorCode = 1000003;
                                 } else {
-                                    errorStr = "身份证识别错误，请重试";
+                                    errorCode = OCRError.ErrorCode.SERVICE_DATA_ERROR;
                                 }
-
-                                OCRError error = new OCRError(OCRError.ErrorCode.SERVICE_DATA_ERROR, errorStr);
+                                OCRError error = new OCRError(errorCode, "身份证图像朝向不正确，请重试");
                                 if (listener != null) {
                                     listener.onError(error);
                                 }
                             }
-                        }else{
-                            if ("normal".equals(result.getImageStatus())) {
-                                if (listener != null) {
-                                    listener.onResult(result);
-                                }
+                        } else {
+                            String errorStr;
+                            if ("reversed_side".equals(result.getImageStatus())) {
+                                errorStr = "身份证正反面颠倒";
+                            } else if ("non_idcard".equals(result.getImageStatus())) {
+                                errorStr = "上传的图片中不包含身份证";
+                            } else if ("blurred".equals(result.getImageStatus())) {
+                                errorStr = "身份证模糊";
+                            } else if ("other_type_card".equals(result.getImageStatus())) {
+                                errorStr = "其他类型证照";
+                            } else if ("over_exposure".equals(result.getImageStatus())) {
+                                errorStr = "身份证关键字段反光或过曝";
+                            } else if ("over_dark".equals(result.getImageStatus())) {
+                                errorStr = "身份证欠曝（亮度过低）";
                             } else {
-                                String errorStr;
-                                if ("reversed_side".equals(result.getImageStatus())) {
-                                    errorStr = "身份证正反面颠倒";
-                                } else if ("non_idcard".equals(result.getImageStatus())) {
-                                    errorStr = "上传的图片中不包含身份证";
-                                } else if ("blurred".equals(result.getImageStatus())) {
-                                    errorStr = "身份证模糊";
-                                } else if ("other_type_card".equals(result.getImageStatus())) {
-                                    errorStr = "其他类型证照";
-                                } else if ("over_exposure".equals(result.getImageStatus())) {
-                                    errorStr = "身份证关键字段反光或过曝";
-                                } else if ("over_dark".equals(result.getImageStatus())) {
-                                    errorStr = "身份证欠曝（亮度过低）";
-                                } else {
-                                    errorStr = "身份证识别错误，请重试";
-                                }
+                                errorStr = "身份证识别错误，请重试";
+                            }
 
-                                OCRError error = new OCRError(OCRError.ErrorCode.SERVICE_DATA_ERROR, errorStr);
-                                if (listener != null) {
-                                    listener.onError(error);
-                                }
+                            OCRError error = new OCRError(OCRError.ErrorCode.SERVICE_DATA_ERROR, errorStr);
+                            if (listener != null) {
+                                listener.onError(error);
                             }
                         }
+                        
+//                        if(param.getDetectRisk()){
+//                            if ("normal".equals(result.getRiskType()) && "normal".equals(result.getImageStatus())) {
+//                                if (listener != null) {
+//                                    listener.onResult(result);
+//                                }
+//                            } else {
+//                                String errorStr;
+//                                if ("copy".equals(result.getRiskType())) {
+//                                    errorStr = "身份证复印件无法识别";
+//                                } else if ("temporary".equals(result.getRiskType())) {
+//                                    errorStr = "临时身份证无法识别";
+//                                } else if ("screen".equals(result.getRiskType())) {
+//                                    errorStr = "身份证翻拍无法识别";
+//                                } else if ("reversed_side".equals(result.getImageStatus())) {
+//                                    errorStr = "身份证正反面颠倒";
+//                                } else if ("non_idcard".equals(result.getImageStatus())) {
+//                                    errorStr = "上传的图片中不包含身份证";
+//                                } else if ("blurred".equals(result.getImageStatus())) {
+//                                    errorStr = "身份证模糊";
+//                                } else if ("other_type_card".equals(result.getImageStatus())) {
+//                                    errorStr = "其他类型证照";
+//                                } else if ("over_exposure".equals(result.getImageStatus())) {
+//                                    errorStr = "身份证关键字段反光或过曝";
+//                                } else if ("over_dark".equals(result.getImageStatus())) {
+//                                    errorStr = "身份证欠曝（亮度过低）";
+//                                } else {
+//                                    errorStr = "身份证识别错误，请重试";
+//                                }
+//
+//                                OCRError error = new OCRError(OCRError.ErrorCode.SERVICE_DATA_ERROR, errorStr);
+//                                if (listener != null) {
+//                                    listener.onError(error);
+//                                }
+//                            }
+//                        }else{
+//                            if ("normal".equals(result.getImageStatus())) {
+//                                if (listener != null) {
+//                                    listener.onResult(result);
+//                                }
+//                            } else {
+//                                String errorStr;
+//                                if ("reversed_side".equals(result.getImageStatus())) {
+//                                    errorStr = "身份证正反面颠倒";
+//                                } else if ("non_idcard".equals(result.getImageStatus())) {
+//                                    errorStr = "上传的图片中不包含身份证";
+//                                } else if ("blurred".equals(result.getImageStatus())) {
+//                                    errorStr = "身份证模糊";
+//                                } else if ("other_type_card".equals(result.getImageStatus())) {
+//                                    errorStr = "其他类型证照";
+//                                } else if ("over_exposure".equals(result.getImageStatus())) {
+//                                    errorStr = "身份证关键字段反光或过曝";
+//                                } else if ("over_dark".equals(result.getImageStatus())) {
+//                                    errorStr = "身份证欠曝（亮度过低）";
+//                                } else {
+//                                    errorStr = "身份证识别错误，请重试";
+//                                }
+//
+//                                OCRError error = new OCRError(OCRError.ErrorCode.SERVICE_DATA_ERROR, errorStr);
+//                                if (listener != null) {
+//                                    listener.onError(error);
+//                                }
+//                            }
+//                        }
                     }
 
                     public void onError(OCRError error) {
                         tempImage.delete();
-                        
                         if (listener != null) {
                             listener.onError(error);
                         }

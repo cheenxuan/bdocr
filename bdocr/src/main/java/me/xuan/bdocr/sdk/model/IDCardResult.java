@@ -19,7 +19,14 @@ public class IDCardResult extends ResponseResult {
     private Word ethnic;
     private String idCardSide;
     private String riskType;
+    private String idcardNumberType;
     private String imageStatus;
+    private int IsClear;
+    private int IsComplete;
+    private int IsNoCover;
+    private double IsClearPropobility;
+    private double IsNoCoverPropobility;
+    private double IsCompletePropobility;
     private Word signDate;
     private Word expiryDate;
     private Word issueAuthority;
@@ -131,12 +138,68 @@ public class IDCardResult extends ResponseResult {
         this.riskType = riskType;
     }
 
+    public String getIdcardNumberType() {
+        return this.idcardNumberType;
+    }
+
+    public void setIdcardNumberType(String idcardNumberType) {
+        this.idcardNumberType = idcardNumberType;
+    }
+
     public String getImageStatus() {
         return this.imageStatus;
     }
 
     public void setImageStatus(String imageStatus) {
         this.imageStatus = imageStatus;
+    }
+
+    public int getIsClear() {
+        return this.IsClear;
+    }
+
+    public void setIsClear(int isClear) {
+        this.IsClear = IsClear;
+    }
+
+    public int getIsComplete() {
+        return this.IsComplete;
+    }
+
+    public void setIsComplete(int IsComplete) {
+        this.IsComplete = IsComplete;
+    }
+
+    public int getIsNoCover() {
+        return this.IsNoCover;
+    }
+
+    public void setIsNoCover(int IsNoCover) {
+        this.IsNoCover = IsNoCover;
+    }
+
+    public double getIsClearPropobility() {
+        return this.IsClearPropobility;
+    }
+
+    public void setIsClearPropobility(double IsClearPropobility) {
+        this.IsClearPropobility = IsClearPropobility;
+    }
+
+    public double getIsNoCoverPropobility() {
+        return this.IsNoCoverPropobility;
+    }
+
+    public void setIsNoCoverPropobility(double IsNoCoverPropobility) {
+        this.IsNoCoverPropobility = IsNoCoverPropobility;
+    }
+
+    public double getIsCompletePropobility() {
+        return this.IsCompletePropobility;
+    }
+
+    public void setIsCompletePropobility(double IsCompletePropobility) {
+        this.IsCompletePropobility = IsCompletePropobility;
     }
 
     public String toString() {

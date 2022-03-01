@@ -111,15 +111,19 @@ public class Camera1Control implements ICameraControl {
 
     @Override
     public void stop() {
-        if (camera != null) {
-            camera.setPreviewCallback(null);
-            stopPreview();
-            // 避免同步代码，为了先设置null后release
-            Camera tempC = camera;
-            camera = null;
-            tempC.release();
-            camera = null;
-            buffer = null;
+        try {
+            if (camera != null) {
+                camera.setPreviewCallback(null);
+                stopPreview();
+                // 避免同步代码，为了先设置null后release
+                Camera tempC = camera;
+                camera = null;
+                tempC.release();
+                camera = null;
+                buffer = null;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 

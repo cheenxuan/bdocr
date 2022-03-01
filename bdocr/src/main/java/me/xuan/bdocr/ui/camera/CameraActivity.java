@@ -118,31 +118,30 @@ public class CameraActivity extends FragmentActivity implements ShowLoadingInter
         super.onCreate(savedInstanceState);
         setContentView(R.layout.bd_ocr_activity_camera);
 
-        
 
         takePictureContainer = (OCRCameraLayout) findViewById(R.id.take_picture_container);
         confirmResultContainer = (OCRCameraLayout) findViewById(R.id.confirm_result_container);
 
-        View idCardExamView  = (View) findViewById(R.id.id_card_exam_container);
-        View idCardBackExamView  = (View) findViewById(R.id.id_card_back_exam_container);
-        View bankCardExamView  = (View) findViewById(R.id.bank_card_exam_container);
+        View idCardExamView = (View) findViewById(R.id.id_card_exam_container);
+        View idCardBackExamView = (View) findViewById(R.id.id_card_back_exam_container);
+        View bankCardExamView = (View) findViewById(R.id.bank_card_exam_container);
 
         contentType = getIntent().getStringExtra(KEY_CONTENT_TYPE);
-        if(contentType.equals(CONTENT_TYPE_ID_CARD_FRONT)){
+        if (contentType.equals(CONTENT_TYPE_ID_CARD_FRONT)) {
             idCardExamView.setVisibility(View.VISIBLE);
-        }else{
+        } else {
             idCardExamView.setVisibility(View.GONE);
         }
 
-        if(contentType.equals(CONTENT_TYPE_ID_CARD_BACK)){
+        if (contentType.equals(CONTENT_TYPE_ID_CARD_BACK)) {
             idCardBackExamView.setVisibility(View.VISIBLE);
-        }else{
+        } else {
             idCardBackExamView.setVisibility(View.GONE);
         }
 
-        if(contentType.equals(CONTENT_TYPE_BANK_CARD)){
+        if (contentType.equals(CONTENT_TYPE_BANK_CARD)) {
             bankCardExamView.setVisibility(View.VISIBLE);
-        }else{
+        } else {
             bankCardExamView.setVisibility(View.GONE);
         }
 
@@ -294,8 +293,8 @@ public class CameraActivity extends FragmentActivity implements ShowLoadingInter
         if (cameraView.getCameraControl().getFlashMode() == ICameraControl.FLASH_MODE_TORCH) {
             cameraView.getCameraControl().setFlashMode(ICameraControl.FLASH_MODE_OFF);
             updateFlashMode();
-        } 
-        
+        }
+
         if (ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.READ_EXTERNAL_STORAGE)
                 != PackageManager.PERMISSION_GRANTED) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
@@ -461,10 +460,10 @@ public class CameraActivity extends FragmentActivity implements ShowLoadingInter
         OCR.getInstance(this).recognizeBankCard(param, new OnResultListener<BankCardResult>() {
             @Override
             public void onResult(BankCardResult result) {
-                String res = String.format("卡号：%s\n类型：%s\n发卡行：%s",
-                        result.getBankCardNumber(),
-                        result.getBankCardType().name(),
-                        result.getBankName());
+//                String res = String.format("卡号：%s\n类型：%s\n发卡行：%s",
+//                        result.getBankCardNumber(),
+//                        result.getBankCardType().name(),
+//                        result.getBankName());
 //                Log.i("BANKCARD", "onResult: " + res);
 
                 HashMap<String, String> map = new HashMap<>();
@@ -474,7 +473,7 @@ public class CameraActivity extends FragmentActivity implements ShowLoadingInter
                 map.put(RESULT_BANK_CARD_VAILD_DATE, "");
                 map.put(RESULT_IMAGE_PATH, outputFile.getAbsolutePath());
 
-                setRecResult(res, map);
+                setRecResult("", map);
             }
 
             @Override
@@ -495,12 +494,15 @@ public class CameraActivity extends FragmentActivity implements ShowLoadingInter
         param.setImageQuality(20);
         //开启身份证风险类型(身份证复印件、临时身份证、身份证翻拍、修改过的身份证)功能
         param.setDetectRisk(false);
+        //开始身份证质量检测(边框/四角不完整、头像或关键字段被遮挡/马赛克)检测功能
+        param.setDetectQuality(true);
+        //是否检测身份证进行裁剪
+        param.setDetectCard(false);
 
         OCR.getInstance(this).recognizeIDCard(param, new OnResultListener<IDCardResult>() {
             @Override
             public void onResult(IDCardResult result) {
                 if (result != null) {
-//                    Log.i("IDCARD", result.toString());
 
                     HashMap<String, String> map = new HashMap<>();
                     map.put(RESULT_ID_CARD_SIDE, result.getIdCardSide());
@@ -514,7 +516,7 @@ public class CameraActivity extends FragmentActivity implements ShowLoadingInter
                     map.put(RESULT_ID_CARD_AUTHORITY, result.getIssueAuthority() == null ? null : result.getIssueAuthority().getWords());
                     map.put(RESULT_ID_CARD_VAILD_DATE, result.getSignDate() == null ? null : result.getSignDate().getWords() + "-" + (result.getExpiryDate() == null ? null : result.getExpiryDate().getWords()));
 
-                    setRecResult(result.toString(), map);
+                    setRecResult("", map);
                 }
             }
 
@@ -657,14 +659,35 @@ public class CameraActivity extends FragmentActivity implements ShowLoadingInter
     }
 
     public void showError(OCRError error) {
-        handler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                hideRecgLoading();
-                cropView.setFilePath(null);
-                showTakePicture();
-            }
-        }, 1000);
+        if (1000001 == error.getErrorCode()) {
+            handler.post(new Runnable() {
+                @Override
+                public void run() {
+                    cropView.rotate(90);
+                }
+            });
+        } else if (1000002 == error.getErrorCode()) {
+            handler.post(new Runnable() {
+                @Override
+                public void run() {
+                    cropView.rotate(180);
+                }
+            });
 
+        } else if (1000003 == error.getErrorCode()) {
+            handler.post(new Runnable() {
+                @Override
+                public void run() {
+                    cropView.rotate(270);
+                }
+            });
+        } else {
+            handler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    hideRecgLoading();
+                }
+            }, 500);
+        }
     }
 }
