@@ -428,21 +428,26 @@ public class Camera1Control implements ICameraControl {
     };
 
     private void updateFlashMode(int flashMode) {
-        switch (flashMode) {
-            case FLASH_MODE_TORCH:
-                parameters.setFlashMode(Camera.Parameters.FLASH_MODE_TORCH);
-                break;
-            case FLASH_MODE_OFF:
-                parameters.setFlashMode(Camera.Parameters.FLASH_MODE_OFF);
-                break;
-            case ICameraControl.FLASH_MODE_AUTO:
-                parameters.setFlashMode(Camera.Parameters.FLASH_MODE_AUTO);
-                break;
-            default:
-                parameters.setFlashMode(Camera.Parameters.FLASH_MODE_AUTO);
-                break;
+
+        try {
+            switch (flashMode) {
+                case FLASH_MODE_TORCH:
+                    parameters.setFlashMode(Camera.Parameters.FLASH_MODE_TORCH);
+                    break;
+                case FLASH_MODE_OFF:
+                    parameters.setFlashMode(Camera.Parameters.FLASH_MODE_OFF);
+                    break;
+                case ICameraControl.FLASH_MODE_AUTO:
+                    parameters.setFlashMode(Camera.Parameters.FLASH_MODE_AUTO);
+                    break;
+                default:
+                    parameters.setFlashMode(Camera.Parameters.FLASH_MODE_AUTO);
+                    break;
+            }
+            camera.setParameters(parameters);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-        camera.setParameters(parameters);
     }
 
     private int getSurfaceOrientation() {

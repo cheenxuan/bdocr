@@ -26,6 +26,8 @@ import me.xuan.bdocr.sdk.utils.ImageUtil;
 import me.xuan.bdocr.sdk.utils.Parser;
 import me.xuan.bdocr.sdk.utils.Util;
 
+import static me.xuan.bdocr.sdk.exception.SDKError.ErrorCode.ACCESS_TOKEN_DATA_ERROR;
+
 /**
  * Author: xuan
  * Created on 2019/10/23 14:29.
@@ -122,6 +124,14 @@ public class OCR {
     }
 
     public void recognizeIDCard(final IDCardParams param, final OnResultListener<IDCardResult> listener) {
+
+        if (this.context == null) {
+            OCRError error = new OCRError(ACCESS_TOKEN_DATA_ERROR, "识别失败，请重试");
+            if (listener != null) {
+                listener.onError(error);
+            }
+        }
+        
         File imageFile = param.getImageFile();
         final File tempImage = new File(this.context.getCacheDir(), String.valueOf(System.currentTimeMillis()));
         ImageUtil.resize(imageFile.getAbsolutePath(), tempImage.getAbsolutePath(), IMAGE_MAX_WIDTH, IMAGE_MAX_HEIGHT, param.getImageQuality());
@@ -259,6 +269,12 @@ public class OCR {
     }
 
     public void recognizeBankCard(final BankCardParams params, final OnResultListener<BankCardResult> listener) {
+        if (this.context == null) {
+            OCRError error = new OCRError(ACCESS_TOKEN_DATA_ERROR, "识别失败，请重试");
+            if (listener != null) {
+                listener.onError(error);
+            }
+        }
         File imageFile = params.getImageFile();
         final File tempImage = new File(this.context.getCacheDir(), String.valueOf(System.currentTimeMillis()));
         ImageUtil.resize(imageFile.getAbsolutePath(), tempImage.getAbsolutePath(), IMAGE_MAX_WIDTH, IMAGE_MAX_HEIGHT, params.getImageQuality());
@@ -408,7 +424,6 @@ public class OCR {
     }
 
     private synchronized boolean isTokenInvalid() {
-//        System.out.println(this.accessToken);
         return null == this.accessToken || this.accessToken.hasExpired();
     }
 

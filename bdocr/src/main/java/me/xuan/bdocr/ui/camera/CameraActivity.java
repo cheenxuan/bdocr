@@ -197,8 +197,12 @@ public class CameraActivity extends FragmentActivity implements ShowLoadingInter
     @Override
     protected void onResume() {
         super.onResume();
-        if (!contentType.equals(CONTENT_TYPE_ALBUM)) {
-            cameraView.start();
+        try {
+            if (!contentType.equals(CONTENT_TYPE_ALBUM)) {
+                cameraView.start();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
