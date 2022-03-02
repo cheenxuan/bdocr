@@ -130,6 +130,7 @@ public class OCR {
             if (listener != null) {
                 listener.onError(error);
             }
+            return;
         }
         
         File imageFile = param.getImageFile();
@@ -274,6 +275,7 @@ public class OCR {
             if (listener != null) {
                 listener.onError(error);
             }
+            return;
         }
         File imageFile = params.getImageFile();
         final File tempImage = new File(this.context.getCacheDir(), String.valueOf(System.currentTimeMillis()));
