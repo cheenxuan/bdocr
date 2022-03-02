@@ -670,6 +670,7 @@ public class CameraActivity extends FragmentActivity implements ShowLoadingInter
                 @Override
                 public void run() {
                     cropView.rotate(90);
+                    hideRecgLoading();
                 }
             });
         } else if (1000002 == error.getErrorCode()) {
@@ -677,6 +678,7 @@ public class CameraActivity extends FragmentActivity implements ShowLoadingInter
                 @Override
                 public void run() {
                     cropView.rotate(180);
+                    hideRecgLoading();
                 }
             });
 
@@ -685,6 +687,7 @@ public class CameraActivity extends FragmentActivity implements ShowLoadingInter
                 @Override
                 public void run() {
                     cropView.rotate(270);
+                    hideRecgLoading();
                 }
             });
         } else {
