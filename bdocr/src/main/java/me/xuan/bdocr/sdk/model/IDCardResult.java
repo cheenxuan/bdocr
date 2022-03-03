@@ -19,6 +19,7 @@ public class IDCardResult extends ResponseResult {
     private Word ethnic;
     private String idCardSide;
     private String riskType;
+    private String cardImg;
     private String idcardNumberType;
     private String imageStatus;
     private int IsClear;
@@ -30,6 +31,10 @@ public class IDCardResult extends ResponseResult {
     private Word signDate;
     private Word expiryDate;
     private Word issueAuthority;
+    private int cardTop = 0;
+    private int cardLeft = 0;
+    private int cardRight = 0;
+    private int cardBottom = 0;
 
     public IDCardResult() {
     }
@@ -138,6 +143,14 @@ public class IDCardResult extends ResponseResult {
         this.riskType = riskType;
     }
 
+    public String getCardImage() {
+        return this.cardImg;
+    }
+
+    public void setCardImage(String cardImg) {
+        this.cardImg = cardImg;
+    }
+
     public String getIdcardNumberType() {
         return this.idcardNumberType;
     }
@@ -200,6 +213,38 @@ public class IDCardResult extends ResponseResult {
 
     public void setIsCompletePropobility(double IsCompletePropobility) {
         this.IsCompletePropobility = IsCompletePropobility;
+    }
+
+    public int getCardTop() {
+        return cardTop;
+    }
+
+    public void setCardTop(int cardTop) {
+        this.cardTop = cardTop;
+    }
+
+    public int getCardLeft() {
+        return cardLeft;
+    }
+
+    public void setCardLeft(int cardLeft) {
+        this.cardLeft = cardLeft;
+    }
+
+    public int getCardRight() {
+        return cardRight;
+    }
+
+    public void setCardRight(int cardRight) {
+        this.cardRight = cardRight;
+    }
+
+    public int getCardBottom() {
+        return cardBottom;
+    }
+
+    public void setCardBottom(int cardBottom) {
+        this.cardBottom = cardBottom;
     }
 
     public String toString() {

@@ -102,7 +102,6 @@ public class MaskView extends View {
                         R.drawable.bd_ocr_passport_locator, null);
                 break;
             case MASK_TYPE_BANK_CARD:
-                break;
             case MASK_TYPE_NONE:
             default:
                 break;
@@ -188,8 +187,11 @@ public class MaskView extends View {
             frame = framePassport;
         }
 
+        System.out.println("frame.width() = " + frame.width() + "frame.height()" + frame.height());
+        
         int width = frame.width();
         int height = frame.height();
+        
 
         int left = frame.left;
         int top = frame.top;

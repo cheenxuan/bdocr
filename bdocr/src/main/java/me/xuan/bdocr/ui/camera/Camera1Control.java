@@ -10,7 +10,8 @@ import android.graphics.ImageFormat;
 import android.graphics.Rect;
 import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
-import android.util.Log;
+import android.os.Handler;
+import android.os.Message;
 import android.view.TextureView;
 import android.view.View;
 import android.widget.FrameLayout;
@@ -21,6 +22,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -29,7 +31,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 @SuppressWarnings("deprecation")
 public class Camera1Control implements ICameraControl {
-//    private String TAG = this.getClass().getCanonicalName();
 
     private int displayOrientation = 0;
     private int cameraId = 0;
@@ -48,6 +49,8 @@ public class Camera1Control implements ICameraControl {
     private int rotation = 0;
     private int previewFrameCount = 0;
     private Camera.Size optSize;
+    private List<Integer> mWaitAction = new LinkedList<>(); //暂存拍照的队列
+    private boolean isTaking = false;   //是否处于拍照中
 
     /*
      * 非扫描模式
@@ -159,8 +162,11 @@ public class Camera1Control implements ICameraControl {
         return displayView;
     }
 
+    private OnTakePictureCallback onTakePictureCallback;
+
     @Override
     public void takePicture(final OnTakePictureCallback onTakePictureCallback) {
+        this.onTakePictureCallback = onTakePictureCallback;
         if (takingPicture.get()) {
             return;
         }
@@ -184,23 +190,22 @@ public class Camera1Control implements ICameraControl {
             CameraThreadPool.execute(new Runnable() {
                 @Override
                 public void run() {
-                    try {
-                        camera.takePicture(null, null, new Camera.PictureCallback() {
-                            @Override
-                            public void onPictureTaken(byte[] data, Camera camera) {
-                                startPreview();
-                                takingPicture.set(false);
-                                if (onTakePictureCallback != null) {
-                                    onTakePictureCallback.onPictureTaken(data);
-                                }
-                            }
-                        });
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                        startPreview();
-                        takingPicture.set(false);
-                    }
+//                    try {
+//                        camera.takePicture(null, null, new Camera.PictureCallback() {
+//                            @Override
+//                            public void onPictureTaken(byte[] data, Camera camera) {
+//                                startPreview();
+//                                takingPicture.set(false);
+//                                if (onTakePictureCallback != null) {
+//                                    onTakePictureCallback.onPictureTaken(data);
+//                                }
+//                            }
+//                        });
+//                    } catch (Exception e) {
+//                        e.printStackTrace();
+//                    }
 
+                    takePictureWork();
                 }
             });
 
@@ -210,6 +215,43 @@ public class Camera1Control implements ICameraControl {
             takingPicture.set(false);
         }
     }
+
+    public void takePictureWork() {   //对外暴露的方法，连续拍照时调用
+        if (isTaking) {   //判断是否处于拍照，如果正在拍照，则将请求放入缓存队列
+            mWaitAction.add(1);
+        } else {
+            doTakeAction();
+        }
+    }
+
+    private void doTakeAction() {   //拍照方法
+        isTaking = true;
+        camera.takePicture(null, null, jpeg);
+    }
+
+    private Camera.PictureCallback jpeg = new Camera.PictureCallback() {
+        @Override
+        public void onPictureTaken(byte[] data, Camera camera) {
+            if (mWaitAction.size() > 0) {
+                mWaitAction.remove(0);   //移除队列中的第一条拍照请求，并执行拍照请求
+                mHandler.sendEmptyMessage(0);  //主线程中调用拍照
+            } else {  //队列中没有拍照请求，走正常流程
+                isTaking = false;
+            }
+            startPreview();
+            takingPicture.set(false);
+            if (onTakePictureCallback != null) {
+                onTakePictureCallback.onPictureTaken(data);
+            }
+            //camera.startPreview();  //如果不调用 ，则画面不会更新
+        }};
+
+    Handler mHandler = new Handler() {
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            doTakeAction();
+        }
+    };
 
     @Override
     public void setPermissionCallback(PermissionCallback callback) {
@@ -287,8 +329,8 @@ public class Camera1Control implements ICameraControl {
 
         @Override
         public void onSurfaceTextureSizeChanged(SurfaceTexture surface, int width, int height) {
-            opPreviewSize(previewView.getWidth(), previewView.getHeight());
             try {
+                opPreviewSize(previewView.getWidth(), previewView.getHeight());
                 startPreview();
                 setPreviewCallbackImpl();
             } catch (Exception e) {
@@ -309,18 +351,22 @@ public class Camera1Control implements ICameraControl {
 
     // 开启预览
     private void startPreview() {
-        if (ActivityCompat.checkSelfPermission(context, Manifest.permission.CAMERA)
-                != PackageManager.PERMISSION_GRANTED) {
-            if (permissionCallback != null) {
-                permissionCallback.onRequestPermission();
+        try {
+            if (ActivityCompat.checkSelfPermission(context, Manifest.permission.CAMERA)
+                    != PackageManager.PERMISSION_GRANTED) {
+                if (permissionCallback != null) {
+                    permissionCallback.onRequestPermission();
+                }
                 return;
             }
-        }
-        if (camera == null) {
-            initCamera();
-        } else {
-            camera.startPreview();
-            startAutoFocus();
+            if (camera == null) {
+                initCamera();
+            } else {
+                camera.startPreview();
+                startAutoFocus();
+            }
+        } catch (Exception e) {
+            // startPreview是异步实现，可能在某些机器上前几次调用会autofocus failß
         }
     }
 
@@ -341,10 +387,8 @@ public class Camera1Control implements ICameraControl {
                                 public void onAutoFocus(boolean success, Camera camera) {
                                 }
                             });
-                        } catch (Throwable e) {
+                        } catch (Exception e) {
                             // startPreview是异步实现，可能在某些机器上前几次调用会autofocus failß
-//                            Log.d(TAG, "startAutoFocus  onAutoFocus failed");
-//                            e.printStackTrace();
                         }
                     }
                 }
@@ -355,14 +399,15 @@ public class Camera1Control implements ICameraControl {
     private void opPreviewSize(int width, @SuppressWarnings("unused") int height) {
 
         if (parameters != null && camera != null && width > 0) {
+            optSize = getOptimalSize(camera.getParameters().getSupportedPreviewSizes());
+            parameters.setPreviewSize(optSize.width, optSize.height);
+            previewView.setRatio(1.0f * optSize.width / optSize.height);
+
+            camera.setDisplayOrientation(getSurfaceOrientation());
+            stopPreview();
             try {
-                optSize = getOptimalSize(parameters.getSupportedPreviewSizes());
-                parameters.setPreviewSize(optSize.width, optSize.height);
-                previewView.setRatio(1.0f * optSize.width / optSize.height);
-                camera.stopPreview();
-                camera.setDisplayOrientation(getSurfaceOrientation());
                 camera.setParameters(parameters);
-            } catch (RuntimeException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }

@@ -17,7 +17,9 @@ import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.View;
 import android.view.WindowManager;
+
 import java.io.IOException;
+
 import me.xuan.bdocr.ui.util.ImageUtil;
 
 public class CropView extends View {
@@ -68,13 +70,12 @@ public class CropView extends View {
             WindowManager windowManager = (WindowManager) getContext().getSystemService(Context.WINDOW_SERVICE);
             Point screenSize = new Point();
             windowManager.getDefaultDisplay().getSize(screenSize);
-            min = Math.min(min, screenSize.x * 2 / 3);
+            min = Math.min(min, screenSize.x * 3 / 4);
 
             options.inSampleSize = ImageUtil.calculateInSampleSize(options, min, min);
             options.inScaled = true;
             options.inDensity = options.outWidth;
             options.inTargetDensity = min * options.inSampleSize;
-            options.inPreferredConfig = Bitmap.Config.RGB_565;
 
             options.inJustDecodeBounds = false;
             this.bitmap = BitmapFactory.decodeFile(path, options);
@@ -105,8 +106,8 @@ public class CropView extends View {
     public Bitmap crop(Rect frame) {
         float scale = getScale();
 
-        float[] src = new float[] {frame.left, frame.top};
-        float[] desc = new float[] {0, 0};
+        float[] src = new float[]{frame.left, frame.top};
+        float[] desc = new float[]{0, 0};
 
         Matrix invertedMatrix = new Matrix();
         this.matrix.invert(invertedMatrix);

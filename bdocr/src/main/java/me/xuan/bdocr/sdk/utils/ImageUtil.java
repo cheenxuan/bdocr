@@ -2,13 +2,13 @@ package me.xuan.bdocr.sdk.utils;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Matrix;
-import android.graphics.Bitmap.CompressFormat;
 import android.graphics.BitmapFactory.Options;
+import android.graphics.Matrix;
 import android.media.ExifInterface;
+
+import java.io.ByteArrayOutputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import android.media.ExifInterface;
 
 /**
  * Author: xuan
@@ -26,14 +26,15 @@ public class ImageUtil {
 
     public static void resize(String inputPath, String outputPath, int dstWidth, int dstHeight, int quality) {
         try {
+            int tempQuality = quality;
             Options options = new Options();
             options.inJustDecodeBounds = true;
-            BitmapFactory.decodeFile(inputPath, options);
+//            BitmapFactory.decodeFile(inputPath, options);
             Matrix m = new Matrix();
             ExifInterface exif = new ExifInterface(inputPath);
             int rotation = exif.getAttributeInt("Orientation", 1);
             if (rotation != 0) {
-                m.preRotate((float)ExifUtil.exifToDegrees(rotation));
+                m.preRotate((float) ExifUtil.exifToDegrees(rotation));
             }
 
             int maxPreviewImageSize = Math.max(dstWidth, dstHeight);
@@ -43,22 +44,33 @@ public class ImageUtil {
             options.inScaled = true;
             options.inDensity = options.outWidth;
             options.inTargetDensity = size * options.inSampleSize;
-            
+
             options.inJustDecodeBounds = false;
             Bitmap roughBitmap = BitmapFactory.decodeFile(inputPath, options);
-            
             FileOutputStream out = new FileOutputStream(outputPath);
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
             try {
-                roughBitmap.compress(CompressFormat.JPEG, quality, out);
-            } catch (Exception var25) {
-                var25.printStackTrace();
+                roughBitmap.compress(Bitmap.CompressFormat.JPEG, tempQuality, baos);
+                while (baos.toByteArray().length / 1024 > 300) {
+                    baos.reset();
+                    roughBitmap.compress(Bitmap.CompressFormat.JPEG, tempQuality, baos);
+                    tempQuality -= 5;
+                }
+                baos.writeTo(out);
+                out.flush();
+                if (roughBitmap != null && !roughBitmap.isRecycled()) {
+                    roughBitmap.recycle();
+                    roughBitmap = null;
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
             } finally {
                 try {
+                    baos.close();
                     out.close();
                 } catch (Exception var24) {
                     var24.printStackTrace();
                 }
-
             }
         } catch (IOException var27) {
             var27.printStackTrace();
@@ -71,8 +83,6 @@ public class ImageUtil {
         final int width = options.outWidth;
         int inSampleSize = 1;
 
-//        System.out.println("height == " + height + " width == " + width + "  rewidth == " + reqWidth);
-
         if (height > reqHeight || width > reqWidth) {
 
             final int halfHeight = height / 2;
@@ -84,8 +94,6 @@ public class ImageUtil {
                 inSampleSize *= 2;
             }
         }
-
-//        System.out.println("inSampleSize == " + inSampleSize);
 
         return inSampleSize;
     }

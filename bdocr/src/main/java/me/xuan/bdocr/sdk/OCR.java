@@ -3,11 +3,15 @@ package me.xuan.bdocr.sdk;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.util.Base64;
 
 import com.baidu.ocr.sdk.jni.JniInterface;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.IOException;
 
 import me.xuan.bdocr.sdk.exception.OCRError;
 import me.xuan.bdocr.sdk.exception.SDKError;
@@ -44,8 +48,8 @@ public class OCR {
     private static final String PREFRENCE_TOKENJSON_KEY = "token_json";
     private static final String PREFRENCE_EXPIRETIME_KEY = "token_expire_time";
     private static final String PREFRENCE_AUTH_TYPE = "token_auth_type";
-    private static final int IMAGE_MAX_WIDTH = 1280;
-    private static final int IMAGE_MAX_HEIGHT = 1280;
+    private static final int IMAGE_MAX_WIDTH = 2560;
+    private static final int IMAGE_MAX_HEIGHT = 2560;
     private AccessToken accessToken = null;
     private static final int AUTHWITH_NOTYET = 0;
     private static final int AUTHWITH_LICENSE = 1;
@@ -132,37 +136,19 @@ public class OCR {
             }
             return;
         }
-        
+
         File imageFile = param.getImageFile();
-        final File tempImage = new File(this.context.getCacheDir(), String.valueOf(System.currentTimeMillis()));
-        ImageUtil.resize(imageFile.getAbsolutePath(), tempImage.getAbsolutePath(), IMAGE_MAX_WIDTH, IMAGE_MAX_HEIGHT, param.getImageQuality());
-        param.setImageFile(tempImage);
+        ImageUtil.resize(imageFile.getAbsolutePath(), imageFile.getAbsolutePath(), IMAGE_MAX_WIDTH, IMAGE_MAX_HEIGHT, param.getImageQuality());
+        param.setImageFile(imageFile);
         final Parser<IDCardResult> idCardResultParser = new IDCardResultParser(param.getIdCardSide());
         this.getToken(new OnResultListener() {
             public void onResult(Object result) {
                 HttpUtil.getInstance().post(OCR.this.urlAppendCommonParams(ID_CARD_URL), param, idCardResultParser, new OnResultListener<IDCardResult>() {
                     public void onResult(IDCardResult result) {
-                        tempImage.delete();
+
                         if ("normal".equals(result.getImageStatus())) {
-                            if (0 == result.getDirection()) {
-                                if (listener != null) {
-                                    listener.onResult(result);
-                                }
-                            } else {
-                                int errorCode;
-                                if (1 == result.getDirection()) {
-                                    errorCode = 1000001;
-                                } else if (2 == result.getDirection()) {
-                                    errorCode = 1000002;
-                                } else if (3 == result.getDirection()) {
-                                    errorCode = 1000003;
-                                } else {
-                                    errorCode = OCRError.ErrorCode.SERVICE_DATA_ERROR;
-                                }
-                                OCRError error = new OCRError(errorCode, "身份证图像朝向不正确，请重试");
-                                if (listener != null) {
-                                    listener.onError(error);
-                                }
+                            if (listener != null) {
+                                listener.onResult(result);
                             }
                         } else {
                             String errorStr;
@@ -187,7 +173,7 @@ public class OCR {
                                 listener.onError(error);
                             }
                         }
-                        
+
 //                        if(param.getDetectRisk()){
 //                            if ("normal".equals(result.getRiskType()) && "normal".equals(result.getImageStatus())) {
 //                                if (listener != null) {
@@ -254,7 +240,6 @@ public class OCR {
                     }
 
                     public void onError(OCRError error) {
-                        tempImage.delete();
                         if (listener != null) {
                             listener.onError(error);
                         }
@@ -278,39 +263,19 @@ public class OCR {
             return;
         }
         File imageFile = params.getImageFile();
-        final File tempImage = new File(this.context.getCacheDir(), String.valueOf(System.currentTimeMillis()));
-        ImageUtil.resize(imageFile.getAbsolutePath(), tempImage.getAbsolutePath(), IMAGE_MAX_WIDTH, IMAGE_MAX_HEIGHT, params.getImageQuality());
-        params.setImageFile(tempImage);
+        ImageUtil.resize(imageFile.getAbsolutePath(), imageFile.getAbsolutePath(), IMAGE_MAX_WIDTH, IMAGE_MAX_HEIGHT, params.getImageQuality());
+        params.setImageFile(imageFile);
         final Parser<BankCardResult> bankCardResultParser = new BankCardResultParser();
         this.getToken(new OnResultListener() {
             public void onResult(Object result) {
                 HttpUtil.getInstance().post(OCR.this.urlAppendCommonParams(BANK_CARD_URL), params, bankCardResultParser, new OnResultListener<BankCardResult>() {
                     public void onResult(BankCardResult result) {
-                        tempImage.delete();
-                        if (0 == result.getDirection()) {
-                            if (listener != null) {
-                                listener.onResult(result);
-                            }
-                        } else {
-                            int errorCode;
-                            if (1 == result.getDirection()) {
-                                errorCode = 1000001;
-                            } else if (2 == result.getDirection()) {
-                                errorCode = 1000002;
-                            } else if (3 == result.getDirection()) {
-                                errorCode = 1000003;
-                            } else {
-                                errorCode = OCRError.ErrorCode.SERVICE_DATA_ERROR;
-                            }
-                            OCRError error = new OCRError(errorCode, "银行卡图像朝向不正确，请重试");
-                            if (listener != null) {
-                                listener.onError(error);
-                            }
+                        if (listener != null) {
+                            listener.onResult(result);
                         }
                     }
 
                     public void onError(OCRError error) {
-                        tempImage.delete();
                         if (listener != null) {
                             listener.onError(error);
                         }
@@ -469,7 +434,6 @@ public class OCR {
         sb.append("&aipSdkVersion=").append("1_4_4");
         sb.append("&aipDevid=").append(DeviceUtil.getDeviceId(this.context));
 
-//        System.out.println("urlAppendCommonParams ->  url -> " + sb.toString());
         return sb.toString();
     }
 

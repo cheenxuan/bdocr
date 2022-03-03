@@ -256,7 +256,7 @@ public class CameraView extends FrameLayout {
         BitmapFactory.Options options = new BitmapFactory.Options();
 
         // 最大图片大小。
-        int maxPreviewImageSize = 2560;
+        int maxPreviewImageSize = 1280;
         int size = Math.min(decoder.getWidth(), decoder.getHeight());
         size = Math.min(size, maxPreviewImageSize);
 
@@ -267,7 +267,7 @@ public class CameraView extends FrameLayout {
         options.inPreferredConfig = Bitmap.Config.RGB_565;
         Bitmap bitmap = decoder.decodeRegion(region, options);
         if (rotation != 0) {
-            // 只能是裁剪完之后再旋转了。有没有别的更好的方案呢？
+            //只能是裁剪完之后再旋转了。有没有别的更好的方案呢？
             Matrix matrix = new Matrix();
             matrix.postRotate(rotation);
             Bitmap rotatedBitmap = Bitmap.createBitmap(
@@ -467,13 +467,11 @@ public class CameraView extends FrameLayout {
             }
 
             BitmapFactory.Options options = new BitmapFactory.Options();
-
-            // 最大图片大小。
-//            System.out.println("decoder.getWidth() = " + decoder.getWidth() +"  decoder.getHeight() = " + decoder.getHeight());
+            
             int maxPreviewImageSize = 2560;
             int size = Math.min(decoder.getWidth(), decoder.getHeight());
             size = Math.min(size, maxPreviewImageSize);
-//            System.out.println("size == " + size);
+            
             options.inSampleSize = ImageUtil.calculateInSampleSize(options, size, size);
             options.inScaled = true;
             options.inDensity = Math.max(options.outWidth, options.outHeight);
@@ -500,15 +498,16 @@ public class CameraView extends FrameLayout {
                     outputFile.createNewFile();
                 }
                 FileOutputStream fileOutputStream = new FileOutputStream(outputFile);
-                bitmap.compress(Bitmap.CompressFormat.JPEG, 90, fileOutputStream);
+                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fileOutputStream);
                 fileOutputStream.flush();
                 fileOutputStream.close();
                 return bitmap;
             } catch (IOException e) {
                 e.printStackTrace();
             }
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
+            return null;
         }
         return null;
     }

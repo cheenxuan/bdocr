@@ -38,8 +38,20 @@ public class IDCardResultParser implements Parser<IDCardResult> {
                 result.setDirection(jsonObject.optInt("direction", -1));
                 result.setWordsResultNumber(jsonObject.optInt("words_result_num"));
                 result.setRiskType(jsonObject.optString("risk_type"));
+                result.setCardImage(jsonObject.optString("card_image"));
                 result.setIdcardNumberType(jsonObject.optString("idcard_number_type"));
                 result.setImageStatus(jsonObject.optString("image_status"));
+                JSONObject cardLocation = jsonObject.optJSONObject("card_location");
+                if (cardLocation != null) {
+                    try {
+                        result.setCardTop(cardLocation.optInt("top"));
+                        result.setCardLeft(cardLocation.optInt("left"));
+                        result.setCardRight(cardLocation.optInt("width"));
+                        result.setCardBottom(cardLocation.optInt("height"));
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
                 JSONObject cardQualityResult = jsonObject.optJSONObject("card_quality");
                 if (cardQualityResult != null) {
                     try {

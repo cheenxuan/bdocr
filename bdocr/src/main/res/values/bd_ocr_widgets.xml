@@ -11,5 +11,6 @@
         <attr name="idCardExamView" format="reference"/>
         <attr name="idCardBackExamView" format="reference"/>
         <attr name="bankCardExamView" format="reference"/>
+        <attr name="bankCardHintView" format="reference"/>
     </declare-styleable>
 </resources>

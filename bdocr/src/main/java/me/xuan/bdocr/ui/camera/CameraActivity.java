@@ -10,22 +10,30 @@ import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.database.Cursor;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Matrix;
 import android.graphics.Rect;
 import android.graphics.drawable.BitmapDrawable;
+import android.media.ExifInterface;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
 import android.provider.MediaStore;
+import android.text.TextUtils;
+import android.util.Base64;
 import android.view.Surface;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.FragmentActivity;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -40,6 +48,8 @@ import me.xuan.bdocr.sdk.model.BankCardParams;
 import me.xuan.bdocr.sdk.model.BankCardResult;
 import me.xuan.bdocr.sdk.model.IDCardParams;
 import me.xuan.bdocr.sdk.model.IDCardResult;
+import me.xuan.bdocr.sdk.utils.ExifUtil;
+import me.xuan.bdocr.sdk.utils.ImageUtil;
 import me.xuan.bdocr.ui.crop.CropView;
 import me.xuan.bdocr.ui.crop.FrameOverlayView;
 
@@ -69,6 +79,11 @@ public class CameraActivity extends FragmentActivity implements ShowLoadingInter
     public static final String RESULT_ID_CARD_AUTHORITY = "issueAuthority";
     public static final String RESULT_ID_CARD_VAILD_DATE = "vaildDate";
     public static final String RESULT_IMAGE_PATH = "iamgePath";
+    public static final String RESULT_IMAGE = "iamge";
+    public static final String RESULT_IMAGE_TOP = "iamge_top";
+    public static final String RESULT_IMAGE_LEFT = "iamge_left";
+    public static final String RESULT_IMAGE_RIGHT = "iamge_right";
+    public static final String RESULT_IMAGE_BOTTOM = "iamge_bottom";
 
 
     public static final String RESULT_BANK_CARD_NO = "bankCardNo";
@@ -80,6 +95,9 @@ public class CameraActivity extends FragmentActivity implements ShowLoadingInter
     private static final int PERMISSIONS_REQUEST_CAMERA = 800;
     private static final int PERMISSIONS_EXTERNAL_STORAGE = 801;
 
+    private static final int IMAGE_MAX_WIDTH = 2560;
+    private static final int IMAGE_MAX_HEIGHT = 2560;
+
     //全局定义
     private long lastClickTime = 0L;
     // 两次点击间隔不能少于1000ms
@@ -87,10 +105,8 @@ public class CameraActivity extends FragmentActivity implements ShowLoadingInter
 
     private File outputFile;
     private String contentType;
-    private Handler handler = new Handler();
-
+    private Handler handler = new Handler(Looper.myLooper());
     private boolean isAutoRecg;
-
     private OCRCameraLayout takePictureContainer;
     private OCRCameraLayout cropContainer;
     private OCRCameraLayout confirmResultContainer;
@@ -101,6 +117,8 @@ public class CameraActivity extends FragmentActivity implements ShowLoadingInter
     private FrameOverlayView overlayView;
     private MaskView cropMaskView;
     private ImageView takePhotoBtn;
+    private int cropType = 0;
+    private TextView tvHint;
     private PermissionCallback permissionCallback = new PermissionCallback() {
         @Override
         public boolean onRequestPermission() {
@@ -117,7 +135,6 @@ public class CameraActivity extends FragmentActivity implements ShowLoadingInter
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.bd_ocr_activity_camera);
-
 
         takePictureContainer = (OCRCameraLayout) findViewById(R.id.take_picture_container);
         confirmResultContainer = (OCRCameraLayout) findViewById(R.id.confirm_result_container);
@@ -160,6 +177,7 @@ public class CameraActivity extends FragmentActivity implements ShowLoadingInter
         findViewById(R.id.rotate_button).setOnClickListener(rotateButtonOnClickListener);
 
         cropView = (CropView) findViewById(R.id.crop_view);
+        tvHint = (TextView) findViewById(R.id.tv_hint);
         cropContainer = (OCRCameraLayout) findViewById(R.id.crop_container);
         overlayView = (FrameOverlayView) findViewById(R.id.overlay_view);
         cropContainer.findViewById(R.id.confirm_button).setOnClickListener(cropConfirmButtonListener);
@@ -225,24 +243,33 @@ public class CameraActivity extends FragmentActivity implements ShowLoadingInter
             case CONTENT_TYPE_ID_CARD_FRONT:
                 maskType = MaskView.MASK_TYPE_ID_CARD_FRONT;
                 overlayView.setVisibility(View.INVISIBLE);
+                cropMaskView.setVisibility(View.INVISIBLE);
+                tvHint.setVisibility(View.INVISIBLE);
                 break;
             case CONTENT_TYPE_ID_CARD_BACK:
                 maskType = MaskView.MASK_TYPE_ID_CARD_BACK;
                 overlayView.setVisibility(View.INVISIBLE);
+                cropMaskView.setVisibility(View.INVISIBLE);
+                tvHint.setVisibility(View.INVISIBLE);
                 break;
             case CONTENT_TYPE_BANK_CARD:
                 maskType = MaskView.MASK_TYPE_BANK_CARD;
                 overlayView.setVisibility(View.INVISIBLE);
+                cropMaskView.setVisibility(View.VISIBLE);
+                tvHint.setVisibility(View.VISIBLE);
                 break;
             case CONTENT_TYPE_PASSPORT:
                 maskType = MaskView.MASK_TYPE_PASSPORT;
                 overlayView.setVisibility(View.INVISIBLE);
+                cropMaskView.setVisibility(View.INVISIBLE);
+                tvHint.setVisibility(View.INVISIBLE);
                 break;
             case CONTENT_TYPE_ALBUM:
             case CONTENT_TYPE_GENERAL:
             default:
                 maskType = MaskView.MASK_TYPE_NONE;
                 cropMaskView.setVisibility(View.INVISIBLE);
+                tvHint.setVisibility(View.INVISIBLE);
                 break;
         }
 
@@ -259,7 +286,8 @@ public class CameraActivity extends FragmentActivity implements ShowLoadingInter
         cropContainer.setVisibility(View.INVISIBLE);
     }
 
-    private void showCrop() {
+    private void showCrop(int type) {
+        this.cropType = type;
         cameraView.getCameraControl().pause();
         updateFlashMode();
         takePictureContainer.setVisibility(View.INVISIBLE);
@@ -275,6 +303,12 @@ public class CameraActivity extends FragmentActivity implements ShowLoadingInter
         cropContainer.setVisibility(View.INVISIBLE);
     }
 
+    private void goOPenAlbum() {
+        cameraView.getCameraControl().pause();
+        updateFlashMode();
+        openAlbum();
+    }
+
     // take photo;
     private void updateFlashMode() {
         int flashMode = cameraView.getCameraControl().getFlashMode();
@@ -288,17 +322,11 @@ public class CameraActivity extends FragmentActivity implements ShowLoadingInter
     private View.OnClickListener albumButtonOnClickListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-            openAlbum();
+            goOPenAlbum();
         }
     };
 
     private void openAlbum() {
-        // TODO: 2/21/22 修复相机模式下开启手电筒 然后选取相册照片导致的报错 
-        if (cameraView.getCameraControl().getFlashMode() == ICameraControl.FLASH_MODE_TORCH) {
-            cameraView.getCameraControl().setFlashMode(ICameraControl.FLASH_MODE_OFF);
-            updateFlashMode();
-        }
-
         if (ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.READ_EXTERNAL_STORAGE)
                 != PackageManager.PERMISSION_GRANTED) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
@@ -344,15 +372,8 @@ public class CameraActivity extends FragmentActivity implements ShowLoadingInter
                 public void run() {
                     if (bitmap != null) {
                         takePictureContainer.setVisibility(View.INVISIBLE);
-                        if (cropMaskView.getMaskType() == MaskView.MASK_TYPE_NONE) {
-                            cropView.setFilePath(outputFile.getAbsolutePath());
-                            showCrop();
-                        } else {
-                            displayImageView.setImageBitmap(bitmap);
-                            showResultConfirm();
-                        }
-                    } else {
-                        showTakePicture();
+                        displayImageView.setImageBitmap(bitmap);
+                        showResultConfirm();
                     }
                 }
             });
@@ -378,16 +399,10 @@ public class CameraActivity extends FragmentActivity implements ShowLoadingInter
         public void onClick(View v) {
             int maskType = cropMaskView.getMaskType();
             Rect rect;
-            switch (maskType) {
-                case MaskView.MASK_TYPE_BANK_CARD:
-                case MaskView.MASK_TYPE_ID_CARD_BACK:
-                case MaskView.MASK_TYPE_ID_CARD_FRONT:
-                    rect = cropMaskView.getFrameRect();
-                    break;
-                case MaskView.MASK_TYPE_NONE:
-                default:
-                    rect = overlayView.getFrameRect();
-                    break;
+            if (MaskView.MASK_TYPE_BANK_CARD == maskType) {
+                rect = cropMaskView.getFrameRect();
+            } else {
+                rect = overlayView.getFrameRect();
             }
             Bitmap cropped = cropView.crop(rect);
             displayImageView.setImageBitmap(cropped);
@@ -410,6 +425,7 @@ public class CameraActivity extends FragmentActivity implements ShowLoadingInter
                     FileOutputStream fileOutputStream = new FileOutputStream(outputFile);
                     Bitmap bitmap = ((BitmapDrawable) displayImageView.getDrawable()).getBitmap();
                     bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fileOutputStream);
+                    fileOutputStream.flush();
                     fileOutputStream.close();
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -427,9 +443,14 @@ public class CameraActivity extends FragmentActivity implements ShowLoadingInter
                         recBankCard(outputFile.getAbsolutePath());
                     }
                 } else {
-                    HashMap<String, String> map = new HashMap<>();
-                    map.put(RESULT_IMAGE_PATH, outputFile.getAbsolutePath());
-                    setRecResult("", map);
+                    try {
+                        ImageUtil.resize(outputFile.getAbsolutePath(), outputFile.getAbsolutePath(), IMAGE_MAX_WIDTH, IMAGE_MAX_HEIGHT, 97);
+                        HashMap<String, String> map = new HashMap<>();
+                        map.put(RESULT_IMAGE_PATH, outputFile.getAbsolutePath());
+                        setRecResult("", map);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                 }
             }
         });
@@ -460,26 +481,44 @@ public class CameraActivity extends FragmentActivity implements ShowLoadingInter
 
     private void recBankCard(String filePath) {
         BankCardParams param = new BankCardParams();
-        // 设置方向检测
+        //设置方向检测
         param.setDetectDirection(true);
+        param.setImageQuality(100);
         param.setImageFile(new File(filePath));
         OCR.getInstance(this).recognizeBankCard(param, new OnResultListener<BankCardResult>() {
             @Override
             public void onResult(BankCardResult result) {
-//                String res = String.format("卡号：%s\n类型：%s\n发卡行：%s",
-//                        result.getBankCardNumber(),
-//                        result.getBankCardType().name(),
-//                        result.getBankName());
-//                Log.i("BANKCARD", "onResult: " + res);
+                try {
+                    if (TextUtils.isEmpty(outputFile.getAbsolutePath())) {
+                        displayImageView.setImageBitmap(null);
+                        showTakePicture();
+                    } else {
+                        try {
+                            int degress = 0;
+                            if (1 == result.getDirection()) {
+                                degress = 90;
+                            } else if (2 == result.getDirection()) {
+                                degress = 180;
+                            } else if (3 == result.getDirection()) {
+                                degress = 270;
+                            }
 
-                HashMap<String, String> map = new HashMap<>();
-                map.put(RESULT_BANK_CARD_NO, result.getBankCardNumber().replaceAll(" ", ""));
-                map.put(RESULT_BANK_NAME, result.getBankName());
-                map.put(RESULT_BANK_CARD_TYPE, result.getBankCardType().name());
-                map.put(RESULT_BANK_CARD_VAILD_DATE, "");
-                map.put(RESULT_IMAGE_PATH, outputFile.getAbsolutePath());
-
-                setRecResult("", map);
+                            if (changeFileRotate(degress)) {
+                                HashMap<String, String> map = new HashMap<>();
+                                map.put(RESULT_BANK_CARD_NO, result.getBankCardNumber().replaceAll(" ", ""));
+                                map.put(RESULT_BANK_NAME, result.getBankName());
+                                map.put(RESULT_BANK_CARD_TYPE, result.getBankCardType().name());
+                                map.put(RESULT_BANK_CARD_VAILD_DATE, "");
+                                map.put(RESULT_IMAGE_PATH, outputFile.getAbsolutePath());
+                                setRecResult("", map);
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
 
             @Override
@@ -487,6 +526,40 @@ public class CameraActivity extends FragmentActivity implements ShowLoadingInter
                 showError(error);
             }
         });
+    }
+
+    private boolean changeFileRotate(int degress) {
+        try {
+            Matrix matrix = new Matrix();
+            if (degress > 0) {
+                matrix.postRotate(degress);
+            }
+
+            Bitmap original = BitmapFactory.decodeFile(outputFile.getAbsolutePath());
+
+            Bitmap resizedBitmap = Bitmap.createBitmap(original, 0, 0,
+                    original.getWidth(), original.getHeight(), matrix, false);
+
+            if (resizedBitmap != original && original != null && !original.isRecycled()) {
+                original.recycle();
+                original = null;
+            }
+
+            FileOutputStream fos = new FileOutputStream(outputFile);
+            resizedBitmap.compress(Bitmap.CompressFormat.JPEG, 100, fos);
+            fos.flush();
+            fos.close();
+
+            if (resizedBitmap != null && !resizedBitmap.isRecycled()) {
+                resizedBitmap.recycle();
+                resizedBitmap = null;
+            }
+
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 
     private void recIDCard(String idCardSide, String filePath) {
@@ -497,32 +570,32 @@ public class CameraActivity extends FragmentActivity implements ShowLoadingInter
         // 设置方向检测
         param.setDetectDirection(true);
         // 设置图像参数压缩质量0-100, 越大图像质量越好但是请求时间越长。 不设置则默认值为20
-        param.setImageQuality(20);
+        param.setImageQuality(95);
         //开启身份证风险类型(身份证复印件、临时身份证、身份证翻拍、修改过的身份证)功能
         param.setDetectRisk(false);
         //开始身份证质量检测(边框/四角不完整、头像或关键字段被遮挡/马赛克)检测功能
         param.setDetectQuality(true);
         //是否检测身份证进行裁剪
-        param.setDetectCard(false);
+        param.setDetectCard(true);
 
         OCR.getInstance(this).recognizeIDCard(param, new OnResultListener<IDCardResult>() {
             @Override
             public void onResult(IDCardResult result) {
                 if (result != null) {
-
-                    HashMap<String, String> map = new HashMap<>();
-                    map.put(RESULT_ID_CARD_SIDE, result.getIdCardSide());
-                    map.put(RESULT_ID_CARD_NAME, result.getName() == null ? null : result.getName().getWords());
-                    map.put(RESULT_ID_CARD_GENDER, result.getGender() == null ? null : result.getGender().getWords());
-                    map.put(RESULT_ID_CARD_ETHNIC, result.getEthnic() == null ? null : result.getEthnic().getWords());
-                    map.put(RESULT_ID_CARD_BIRTHDAY, result.getBirthday() == null ? null : result.getBirthday().getWords());
-                    map.put(RESULT_ID_CARD_ADDRESS, result.getAddress() == null ? null : result.getAddress().getWords());
-                    map.put(RESULT_ID_CARD_NO, result.getIdNumber() == null ? null : result.getIdNumber().getWords());
-                    map.put(RESULT_IMAGE_PATH, outputFile.getAbsolutePath());
-                    map.put(RESULT_ID_CARD_AUTHORITY, result.getIssueAuthority() == null ? null : result.getIssueAuthority().getWords());
-                    map.put(RESULT_ID_CARD_VAILD_DATE, result.getSignDate() == null ? null : result.getSignDate().getWords() + "-" + (result.getExpiryDate() == null ? null : result.getExpiryDate().getWords()));
-
-                    setRecResult("", map);
+                    if (saveFile(result.getCardImage())) {
+                        HashMap<String, String> map = new HashMap<>();
+                        map.put(RESULT_ID_CARD_SIDE, result.getIdCardSide());
+                        map.put(RESULT_ID_CARD_NAME, result.getName() == null ? null : result.getName().getWords());
+                        map.put(RESULT_ID_CARD_GENDER, result.getGender() == null ? null : result.getGender().getWords());
+                        map.put(RESULT_ID_CARD_ETHNIC, result.getEthnic() == null ? null : result.getEthnic().getWords());
+                        map.put(RESULT_ID_CARD_BIRTHDAY, result.getBirthday() == null ? null : result.getBirthday().getWords());
+                        map.put(RESULT_ID_CARD_ADDRESS, result.getAddress() == null ? null : result.getAddress().getWords());
+                        map.put(RESULT_ID_CARD_NO, result.getIdNumber() == null ? null : result.getIdNumber().getWords());
+                        map.put(RESULT_IMAGE_PATH, outputFile.getAbsolutePath());
+                        map.put(RESULT_ID_CARD_AUTHORITY, result.getIssueAuthority() == null ? null : result.getIssueAuthority().getWords());
+                        map.put(RESULT_ID_CARD_VAILD_DATE, result.getSignDate() == null ? null : result.getSignDate().getWords() + "-" + (result.getExpiryDate() == null ? null : result.getExpiryDate().getWords()));
+                        setRecResult("", map);
+                    }
                 }
             }
 
@@ -531,6 +604,33 @@ public class CameraActivity extends FragmentActivity implements ShowLoadingInter
                 showError(error);
             }
         });
+    }
+
+    private boolean saveFile(String base64Data) {
+        try {
+
+            if (TextUtils.isEmpty(base64Data)) {
+                return false;
+            }
+            
+            byte[] bytes = Base64.decode(base64Data, Base64.NO_WRAP);
+            Bitmap original = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+
+            FileOutputStream fos = new FileOutputStream(outputFile);
+            original.compress(Bitmap.CompressFormat.JPEG, 100, fos);
+            fos.flush();
+            fos.close();
+
+            if (original != null && !original.isRecycled()) {
+                original.recycle();
+                original = null;
+            }
+
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 
     private void setRecResult(String result, HashMap<String, String> resultArr) {
@@ -592,7 +692,7 @@ public class CameraActivity extends FragmentActivity implements ShowLoadingInter
         }
         takePictureContainer.setOrientation(orientation);
         cameraView.setOrientation(cameraViewOrientation);
-        cropContainer.setOrientation(orientation);
+//        cropContainer.setOrientation(orientation);
         confirmResultContainer.setOrientation(orientation);
     }
 
@@ -604,7 +704,7 @@ public class CameraActivity extends FragmentActivity implements ShowLoadingInter
                 try {
                     Uri uri = data.getData();
                     cropView.setFilePath(getRealPathFromURI(uri));
-                    showCrop();
+                    showCrop(1);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -665,38 +765,59 @@ public class CameraActivity extends FragmentActivity implements ShowLoadingInter
     }
 
     public void showError(OCRError error) {
-        if (1000001 == error.getErrorCode()) {
-            handler.post(new Runnable() {
-                @Override
-                public void run() {
-                    cropView.rotate(90);
-                    hideRecgLoading();
-                }
-            });
-        } else if (1000002 == error.getErrorCode()) {
-            handler.post(new Runnable() {
-                @Override
-                public void run() {
-                    cropView.rotate(180);
-                    hideRecgLoading();
-                }
-            });
-
-        } else if (1000003 == error.getErrorCode()) {
-            handler.post(new Runnable() {
-                @Override
-                public void run() {
-                    cropView.rotate(270);
-                    hideRecgLoading();
-                }
-            });
-        } else {
-            handler.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    hideRecgLoading();
-                }
-            }, 500);
-        }
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                hideRecgLoading();
+            }
+        }, 500);
     }
+
+
+    /**
+     * bitmap转为base64
+     *
+     * @param bitmap
+     * @return
+     */
+    public static String bitmapToBase64(Bitmap bitmap) {
+        String result = null;
+        ByteArrayOutputStream baos = null;
+        try {
+            if (bitmap != null) {
+                baos = new ByteArrayOutputStream();
+                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
+
+                baos.flush();
+                baos.close();
+
+                byte[] bitmapBytes = baos.toByteArray();
+                result = Base64.encodeToString(bitmapBytes, Base64.NO_WRAP);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (baos != null) {
+                    baos.flush();
+                    baos.close();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return result;
+    }
+
+    /**
+     * base64转为bitmap
+     *
+     * @param base64Data
+     * @return
+     */
+    public static Bitmap base64ToBitmap(String base64Data) {
+        byte[] bytes = Base64.decode(base64Data, Base64.DEFAULT);
+        return BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+    }
+
 }
