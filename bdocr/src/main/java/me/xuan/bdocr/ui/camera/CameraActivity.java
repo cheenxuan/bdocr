@@ -536,9 +536,8 @@ public class CameraActivity extends FragmentActivity implements ShowLoadingInter
             }
 
             Bitmap original = BitmapFactory.decodeFile(outputFile.getAbsolutePath());
-
             Bitmap resizedBitmap = Bitmap.createBitmap(original, 0, 0,
-                    original.getWidth(), original.getHeight(), matrix, false);
+                    original.getWidth(), original.getHeight(), matrix, true);
 
             if (resizedBitmap != original && original != null && !original.isRecycled()) {
                 original.recycle();
@@ -612,7 +611,7 @@ public class CameraActivity extends FragmentActivity implements ShowLoadingInter
             if (TextUtils.isEmpty(base64Data)) {
                 return false;
             }
-            
+
             byte[] bytes = Base64.decode(base64Data, Base64.NO_WRAP);
             Bitmap original = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
 

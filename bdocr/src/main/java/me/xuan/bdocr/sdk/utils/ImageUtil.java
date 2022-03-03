@@ -29,7 +29,7 @@ public class ImageUtil {
             int tempQuality = quality;
             Options options = new Options();
             options.inJustDecodeBounds = true;
-//            BitmapFactory.decodeFile(inputPath, options);
+            BitmapFactory.decodeFile(inputPath, options);
             Matrix m = new Matrix();
             ExifInterface exif = new ExifInterface(inputPath);
             int rotation = exif.getAttributeInt("Orientation", 1);

@@ -187,7 +187,6 @@ public class MaskView extends View {
             frame = framePassport;
         }
 
-        System.out.println("frame.width() = " + frame.width() + "frame.height()" + frame.height());
         
         int width = frame.width();
         int height = frame.height();
@@ -197,9 +196,7 @@ public class MaskView extends View {
         int top = frame.top;
         int right = frame.right;
         int bottom = frame.bottom;
-
-//        Log.d(TAG, "onDraw() left == " + left + " top == " + top + " right == " + right + " bottom == " + bottom);
-
+        
         canvas.drawColor(maskColor);
         fillRectRound(left, top, right, bottom, 30, 30, false);
         canvas.drawPath(path, pen);
