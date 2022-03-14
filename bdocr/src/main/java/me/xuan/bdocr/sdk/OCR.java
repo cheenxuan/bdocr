@@ -3,15 +3,11 @@ package me.xuan.bdocr.sdk;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.util.Base64;
 
 import com.baidu.ocr.sdk.jni.JniInterface;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.IOException;
 
 import me.xuan.bdocr.sdk.exception.OCRError;
 import me.xuan.bdocr.sdk.exception.SDKError;
@@ -271,7 +267,14 @@ public class OCR {
                 HttpUtil.getInstance().post(OCR.this.urlAppendCommonParams(BANK_CARD_URL), params, bankCardResultParser, new OnResultListener<BankCardResult>() {
                     public void onResult(BankCardResult result) {
                         if (listener != null) {
-                            listener.onResult(result);
+
+                            if (BankCardResult.BankCardType.Unknown == result.getBankCardType()) {
+                                String errorStr = "图片中不包含银行卡或图片模糊";
+                                OCRError error = new OCRError(OCRError.ErrorCode.SERVICE_DATA_ERROR, errorStr);
+                                listener.onError(error);
+                            } else {
+                                listener.onResult(result);
+                            }
                         }
                     }
 
