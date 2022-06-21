@@ -35,11 +35,11 @@ public class AccessTokenParser implements Parser<AccessToken> {
                         }
 
                         accessToken.setExpiresIn(data.optInt("expires_in"));
-                        try {
-                            accessToken.setExpireTime(System.currentTimeMillis());
-                        } catch (Exception e) {
-                            e.printStackTrace();
+                        
+                        if (data.optLong("expires_at") > 0) {
+                            accessToken.setExpireTime(data.optLong("expires_at"));
                         }
+                        
                         return accessToken;
                     } else {
                         return null;
