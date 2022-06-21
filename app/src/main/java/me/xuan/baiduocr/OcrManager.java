@@ -25,8 +25,8 @@ import me.xuan.bdocr.ui.camera.CameraActivity;
 public class OcrManager {
 
     private static final String TAG = "OcrManager";
-    private static final String ak = "LUTNjEHDfGS1Bxg1QuB3yZ1N";
-    private static final String sk = "rFRj4I0mUIsFOaVUzc1gVsURW6j3UimD";
+    private static final String ak = "XXXXXXXXXXXXX";
+    private static final String sk = "XXXXXXXXXXXXXXXXXXXXX";
 
     public static void startBdIdCardOcr(final Activity activity, final boolean isBackSide, final int requestCode) {
         //初始化OCR
