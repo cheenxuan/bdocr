@@ -73,21 +73,28 @@ public class OCR {
         if (ctx != null) {
             this.context = ctx;
         }
-
     }
 
-    public static OCR getInstance(Context ctx) {
-        if (instance == null) {
-            Class var1 = OCR.class;
-            synchronized (OCR.class) {
-                if (instance == null) {
-                    instance = new OCR(ctx);
-                }
-            }
-        }
-
-        return instance;
+    private OCR() {
     }
+
+    public static OCR getInstance() {
+        return OCRInstanceHoler.INSTANCE;
+//        if (instance == null) {
+//            synchronized (OCR.class) {
+//                if (instance == null) {
+//                    instance = new OCR(ctx);
+//                }
+//            }
+//        }
+//
+//        return instance;
+    }
+
+    private static class OCRInstanceHoler {
+        private static OCR INSTANCE = new OCR();
+    }
+
 
     public void init(Context context) {
         this.context = context;

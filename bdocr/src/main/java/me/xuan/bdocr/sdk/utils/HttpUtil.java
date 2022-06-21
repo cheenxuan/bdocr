@@ -120,8 +120,8 @@ public class HttpUtil {
                     try {
                         AccessToken accessToken = (AccessToken)accessTokenParser.parse(resultStr);
                         if (accessToken != null) {
-                            OCR.getInstance((Context)null).setAccessToken(accessToken);
-                            OCR.getInstance((Context)null).setLicense(accessToken.getLic());
+                            OCR.getInstance().setAccessToken(accessToken);
+                            OCR.getInstance().setLicense(accessToken.getLic());
                             listener.onResult(accessToken);
                         } else {
                             HttpUtil.throwSDKError(listener, ACCESS_TOKEN_DATA_ERROR, "Server illegal response " + resultStr);

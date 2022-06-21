@@ -25,12 +25,12 @@ import me.xuan.bdocr.ui.camera.CameraActivity;
 public class OcrManager {
 
     private static final String TAG = "OcrManager";
-    private static final String ak = "xxxxxxxxxxxxxxxxxxxxxxxxxx";
-    private static final String sk = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx";
+    private static final String ak = "LUTNjEHDfGS1Bxg1QuB3yZ1N";
+    private static final String sk = "rFRj4I0mUIsFOaVUzc1gVsURW6j3UimD";
 
     public static void startBdIdCardOcr(final Activity activity, final boolean isBackSide, final int requestCode) {
         //初始化OCR
-        initAccessTokenWithAkSk(activity, new OnResultListener<AccessToken>() {
+        initAccessTokenWithAkSk(activity.getApplicationContext(), new OnResultListener<AccessToken>() {
             @Override
             public void onResult(AccessToken result) {
                 String token = result.getAccessToken();
@@ -58,7 +58,7 @@ public class OcrManager {
 
     public static void startBdBankCardOcr(final Activity activity, final int requestCode) {
         //初始化OCR
-        initAccessTokenWithAkSk(activity, new OnResultListener<AccessToken>() {
+        initAccessTokenWithAkSk(activity.getApplicationContext(), new OnResultListener<AccessToken>() {
             @Override
             public void onResult(AccessToken result) {
                 String token = result.getAccessToken();
@@ -98,7 +98,8 @@ public class OcrManager {
      * 用明文ak，sk初始化
      */
     private static void initAccessTokenWithAkSk(Context context, OnResultListener<AccessToken> listener) {
-        OCR.getInstance(context).initAccessTokenWithAkSk(listener, context, ak, sk);
+        OCR.getInstance().setAutoCacheToken(true);
+        OCR.getInstance().initAccessTokenWithAkSk(listener, context, ak, sk);
     }
 
 

@@ -41,7 +41,7 @@ public class ThirdRecgCardActivity extends CameraActivity {
     protected void onDestroy() {
         super.onDestroy();
         try {
-            OCR.getInstance(this).release();
+            OCR.getInstance().release();
         } catch (Exception e) {
 
         }

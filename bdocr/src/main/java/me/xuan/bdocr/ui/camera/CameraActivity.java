@@ -483,7 +483,7 @@ public class CameraActivity extends FragmentActivity implements ShowLoadingInter
         param.setDetectDirection(true);
         param.setImageQuality(100);
         param.setImageFile(new File(filePath));
-        OCR.getInstance(this).recognizeBankCard(param, new OnResultListener<BankCardResult>() {
+        OCR.getInstance().recognizeBankCard(param, new OnResultListener<BankCardResult>() {
             @Override
             public void onResult(BankCardResult result) {
                 try {
@@ -575,7 +575,7 @@ public class CameraActivity extends FragmentActivity implements ShowLoadingInter
         //是否检测身份证进行裁剪
         param.setDetectCard(true);
 
-        OCR.getInstance(this).recognizeIDCard(param, new OnResultListener<IDCardResult>() {
+        OCR.getInstance().recognizeIDCard(param, new OnResultListener<IDCardResult>() {
             @Override
             public void onResult(IDCardResult result) {
                 if (result != null) {
