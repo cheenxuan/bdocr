@@ -315,7 +315,6 @@ public class OCR {
         this.sk = sk;
         this.init(context);
         AccessToken tokenFromCache = this.getByCache();
-//        System.out.println("OCR -> initAccessTokenWithAkSk -> " + tokenFromCache);
         if (tokenFromCache != null) {
             this.accessToken = tokenFromCache;
             listener.onResult(tokenFromCache);
@@ -406,6 +405,11 @@ public class OCR {
 
     private void getToken(final OnResultListener listener) {
         if (this.isTokenInvalid()) {
+            //清空本地accessToken
+            SharedPreferences mSharedPreferences = this.context.getSharedPreferences(PREFRENCE_FILE_KEY, 0);
+            SharedPreferences.Editor editor = mSharedPreferences.edit();
+            editor.clear().apply();
+            
             if (this.authStatus == AUTHWITH_AKSK) {
                 this.initAccessTokenWithAkSk(new OnResultListener<AccessToken>() {
                     public void onResult(AccessToken result) {
